@@ -57,11 +57,11 @@
       <x>400</x>
       <y>320</y>
       <width>241</width>
-      <height>141</height>
+      <height>131</height>
      </rect>
     </property>
     <property name="cursor" stdset="0">
-     <cursorShape>IBeamCursor</cursorShape>
+     <cursorShape>ArrowCursor</cursorShape>
     </property>
    </widget>
    <widget class="QPushButton" name="Bot_Reg">
@@ -146,9 +146,9 @@
    <widget class="QLabel" name="Label_hors">
     <property name="geometry">
      <rect>
-      <x>230</x>
+      <x>170</x>
       <y>0</y>
-      <width>181</width>
+      <width>311</width>
       <height>31</height>
      </rect>
     </property>
@@ -159,8 +159,14 @@
       <bold>true</bold>
      </font>
     </property>
+    <property name="layoutDirection">
+     <enum>Qt::LeftToRight</enum>
+    </property>
     <property name="text">
      <string>Horario</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
     </property>
    </widget>
    <widget class="QPushButton" name="Bot_Sal">
@@ -198,12 +204,12 @@
      <string>Materia a Registrar</string>
     </property>
    </widget>
-   <widget class="QTextEdit" name="Text_Reg">
+   <widget class="QPlainTextEdit" name="Text_MatReg">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>20</x>
       <y>340</y>
-      <width>241</width>
+      <width>221</width>
       <height>31</height>
      </rect>
     </property>
