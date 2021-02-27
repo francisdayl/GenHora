@@ -15,9 +15,9 @@ class Ui_AsistenteRegistros(object):
     def setupUi(self, AsistenteRegistros):
         AsistenteRegistros.setObjectName("AsistenteRegistros")
         AsistenteRegistros.setEnabled(True)
-        AsistenteRegistros.resize(656, 475)
-        AsistenteRegistros.setMinimumSize(QtCore.QSize(656, 475))
-        AsistenteRegistros.setMaximumSize(QtCore.QSize(656, 475))
+        AsistenteRegistros.resize(650, 475)
+        AsistenteRegistros.setMinimumSize(QtCore.QSize(650, 475))
+        AsistenteRegistros.setMaximumSize(QtCore.QSize(650, 475))
         font = QtGui.QFont()
         font.setFamily("Segoe MDL2 Assets")
         font.setPointSize(11)
@@ -91,6 +91,7 @@ class Ui_AsistenteRegistros(object):
 
         self.retranslateUi(AsistenteRegistros)
         QtCore.QMetaObject.connectSlotsByName(AsistenteRegistros)
+        self.Bot_Sal.clicked.connect(lambda: AsistenteRegistros.close())
 
     def retranslateUi(self, AsistenteRegistros):
         _translate = QtCore.QCoreApplication.translate

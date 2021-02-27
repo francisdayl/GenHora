@@ -22,7 +22,7 @@ class Ui_Dialog(object):
         Dialog.setSizePolicy(sizePolicy)
         Dialog.setMinimumSize(QtCore.QSize(429, 361))
         Dialog.setMaximumSize(QtCore.QSize(429, 361))
-        Dialog.setSizeIncrement(QtCore.QSize(429, 0))
+        Dialog.setSizeIncrement(QtCore.QSize(0, 0))
         font = QtGui.QFont()
         font.setFamily("Segoe MDL2 Assets")
         font.setPointSize(11)
@@ -106,6 +106,7 @@ class Ui_Dialog(object):
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
+        self.Bot_Salir.clicked.connect(lambda: Dialog.close())
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
@@ -120,6 +121,8 @@ class Ui_Dialog(object):
         self.Bot_Salir.setText(_translate("Dialog", "Salir"))
         self.Bot_Reg.setText(_translate("Dialog", "Registrar Materia"))
         self.Bot_Borrar.setText(_translate("Dialog", "Borrar Todo"))
+    
+    
 
 
 if __name__ == "__main__":

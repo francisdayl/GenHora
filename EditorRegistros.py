@@ -163,6 +163,7 @@ class Ui_EditorRegistros(object):
 
         self.retranslateUi(EditorRegistros)
         QtCore.QMetaObject.connectSlotsByName(EditorRegistros)
+        self.Bot_Sal.clicked.connect(lambda: EditorRegistros.close())
 
     def retranslateUi(self, EditorRegistros):
         _translate = QtCore.QCoreApplication.translate
