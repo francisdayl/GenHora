@@ -9,6 +9,9 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+import sqlite3
+from funciones import *
+
 
 
 class Ui_Dialog(object):
@@ -107,6 +110,58 @@ class Ui_Dialog(object):
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
         self.Bot_Salir.clicked.connect(lambda: Dialog.close())
+        self.Bot_Reg.clicked.connect(self.guardar_reg)
+        self.Bot_Borrar.clicked.connect(lambda: self.borrar("Todo"))
+    
+    def guardar_reg(self):
+        materia = self.Text_Mat.toPlainText().strip().upper()
+        paralelo = self.Text_Par.toPlainText().strip().upper()
+        claset_1 = self.Text_PC.toPlainText().strip().upper()
+        claset_2 = self.Text_SC.toPlainText().strip().upper()
+        clasep = self.Text_CP.toPlainText().strip().upper()
+        paralelo_p = self.Text_Pract.toPlainText().strip().upper()
+        if self.val_campos(materia, paralelo, claset_1, claset_2, clasep, paralelo_p):
+
+            pass
+        else:
+            boton = QtWidgets.QMessageBox()
+            boton.setWindowTitle("Error")
+            boton.setIcon(QtWidgets.QMessageBox.Critical)
+            boton.setText("Error en los datos ingresados.\nVerifique los campos")
+            x = boton.exec_()
+
+    
+    def val_campos(self, mate, paral, clase1, clase2, clasep, paralelo_p):
+        if len(mate)<2 or len(paral)==0:
+            return False
+        if len(clase1)==0 and len(clase2)==0:
+            return False
+        if len(clase1)!=0:
+            if type(val_registro(clase1))==bool:
+                return False
+        if len(clase2)!=0:
+            if type(val_registro(clase2))==bool:
+                return False
+        if len(paralelo_p)==0 and type(val_registro(clasep))==bool:
+            return False
+        return True
+    
+    def borrar(self, opc):
+
+        if opc=="Todo":
+            self.Text_Mat.clear()
+            self.borrar("Info")
+        elif opc=="Solo Practico":
+            self.Text_CP.clear()            
+            self.Text_Pract.clear()
+        elif opc== "Info":
+            self.Text_Par.clear()
+            self.Text_PC.clear()
+            self.Text_SC.clear()
+            self.Check_Prac.setChecked(False)
+            self.Text_CP.clear()            
+            self.Text_Pract.clear()
+
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
@@ -116,7 +171,7 @@ class Ui_Dialog(object):
         self.label_3.setText(_translate("Dialog", "Paralelo"))
         self.label_4.setText(_translate("Dialog", "Segunda Clase"))
         self.label_5.setText(_translate("Dialog", "Práctico"))
-        self.Check_Prac.setText(_translate("Dialog", "Actualizar solo práctico"))
+        self.Check_Prac.setText(_translate("Dialog", "Actualizar solo práctico")) 
         self.label_6.setText(_translate("Dialog", "Clase Práctica"))
         self.Bot_Salir.setText(_translate("Dialog", "Salir"))
         self.Bot_Reg.setText(_translate("Dialog", "Registrar Materia"))
