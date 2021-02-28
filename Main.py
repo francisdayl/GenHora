@@ -12,6 +12,59 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from Asistente import *
 from EditorRegistros import *
 from RegistroMaterias import *
+import sqlite3
+from os import path
+
+
+
+if not path.exists('registros.db'):
+    conn = sqlite3.connect('registros.db')
+    curs = conn.cursor()
+    curs.execute('''CREATE TABLE Materias  (materia CHAR PRIMARY KEY )''')
+    curs.execute('''CREATE TABLE Paralelos (materia CHAR , paralelo CHAR, PRIMARY KEY(materia,paralelo) , FOREIGN KEY (materia) REFERENCES Materias(materia) )''')
+    curs.execute('''CREATE TABLE ClasesT   (materia CHAR , paralelo CHAR,  dia CHAR, hora_ini CHAR, hora_fin CHAR, PRIMARY KEY(materia,paralelo), FOREIGN KEY (materia,paralelo) REFERENCES Paralelos (materia,paralelo)) ''')
+    curs.execute('''CREATE TABLE Practicos (materia CHAR , paralelo CHAR, paralelop CHAR, PRIMARY KEY(materia,paralelo,paralelop) , FOREIGN KEY (materia,paralelo) REFERENCES Paralelos (materia,paralelo) ) ''')
+    curs.execute('''CREATE TABLE ClasesP   (materia CHAR , paralelo CHAR, paralelop CHAR, dia CHAR, hora_ini CHAR, hora_fin CHAR, PRIMARY KEY(materia,paralelo,paralelop) , FOREIGN KEY (materia,paralelo,paralelop) REFERENCES Practicos (materia, paralelo, paralelop)) ''')
+    conn.commit()
+    conn.close()
+
+
+dias=["Lunes", "Martes", "Miércoles", "Jueves", "Viernes","Sábado"]
+cad=""
+for x in range(7, 23):
+        if len(str(x)) != 2:
+            x = "0" + str(x)
+        cad += str(x) + ":00," + str(x) + ":30,"
+horas = cad.split(",")[:-1]
+
+
+def val_registro(ingreso):#Valida que el registro ingresado cumpla con el formato, devuelve una tupla en caso de ser valido caso contrario un False
+    ingreso = ingreso.strip().split("\t")
+    if len(ingreso) != 3:
+        return False
+    hi = ingreso[1][:5]
+    hf = ingreso[2][:5]
+    if hi not in horas or hf not in horas:
+        return False
+    if horas.index(hi)>=horas.index(hf):
+        return False
+    valid = val_dia(ingreso[0].title())
+    if valid == bool:
+        return False
+    ingreso[0]=valid
+    return True,ingreso
+
+def val_dia(dia):
+    if dia.startswith("Mi"):
+        dia="Miércoles"
+    elif  dia.startswith("S"):
+        dia="Sábado"
+    if dia not in dias:
+        return False
+    return dia
+
+
+#print(type(val_registro("Miercoles	16:00:00	15:30:00")) == tuple)
 
 
 class Ui_MainWindow(object):
@@ -221,18 +274,7 @@ ui_regist = Ui_Dialog()
 ui_regist.setupUi(agg_r)
 
 
-
-
 main.show()
 sys.exit(app.exec_())
 
 
-"""
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui =Ui_AsistenteRegistros()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec_())"""
