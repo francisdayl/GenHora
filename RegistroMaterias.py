@@ -121,8 +121,14 @@ class Ui_Dialog(object):
         clasep = self.Text_CP.toPlainText().strip().upper()
         paralelo_p = self.Text_Pract.toPlainText().strip().upper()
         if self.val_campos(materia, paralelo, claset_1, claset_2, clasep, paralelo_p):
-
-            pass
+            if type(val_registro(claset_1))==list:
+                claset_1=val_registro(claset_1)
+            if type(val_registro(claset_2))==list:
+                claset_2=val_registro(claset_2)
+            if type(val_registro(clasep))==list:
+                clasep=val_registro(clasep)
+            registrar_info(materia,paralelo,claset_1,claset_2,clasep,paralelo_p)
+            
         else:
             boton = QtWidgets.QMessageBox()
             boton.setWindowTitle("Error")
