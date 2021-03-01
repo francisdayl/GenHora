@@ -256,5 +256,3 @@ ui_regist.setupUi(agg_r)
 
 main.show()
 sys.exit(app.exec_())
-
-

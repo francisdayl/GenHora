@@ -9,7 +9,45 @@ for x in range(7, 23):
         cad += str(x) + ":00," + str(x) + ":30,"
 horas = cad.split(",")[:-1]
 
+#QUERIES SQL
 
+
+def get_materias():
+    conn = sqlite3.connect('registros.db')
+    curs = conn.cursor()
+    materias = curs.execute("""SELECT * from MATERIAS""").fetchall()
+    
+    conn.commit()
+    conn.close()
+    l_mat = []
+    for mat in materias:
+        l_mat.append(mat[0])
+    
+    return l_mat
+
+def get_paralelos(materia):
+    conn = sqlite3.connect('registros.db')
+    curs = conn.cursor()
+    pars = curs.execute("""SELECT paralelo from Paralelos WHERE materia='{}' """.format(materia)).fetchall()
+    conn.commit()
+    conn.close()
+    l_par = []
+    for par in pars:
+        l_par.append(par[0])
+    
+    return l_par
+
+def get_practicos(materia,paralelo):
+    conn = sqlite3.connect('registros.db')
+    curs = conn.cursor()
+    pars = curs.execute("""SELECT paralelop from Practicos WHERE materia='{}' AND paralelo='{}' """.format(materia,paralelo)).fetchall()
+    conn.commit()
+    conn.close()
+    l_par = []
+    for par in pars:
+        l_par.append(par[0])
+    
+    return l_par
 
 
 def crear_db():
@@ -66,7 +104,7 @@ def registrar_info( mate, paral, clase1, clase2, clasep, paralelo_p):
     conn.commit()
     conn.close()
     
-
+#Funciones GenHora
 
 def val_registro(ingreso):#Valida que el registro ingresado cumpla con el formato, devuelve un string en caso de ser valido caso contrario un False
     ingreso = ingreso.strip().split("\t")

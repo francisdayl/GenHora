@@ -9,7 +9,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-
+from funciones import *
 
 class Ui_EditorRegistros(object):
     def setupUi(self, EditorRegistros):
@@ -160,10 +160,34 @@ class Ui_EditorRegistros(object):
         self.Label_MatAct.setText("")
         self.Label_MatAct.setAlignment(QtCore.Qt.AlignCenter)
         self.Label_MatAct.setObjectName("Label_MatAct")
+        self.Combo_Mat.addItems(get_materias())
+        self.Combo_Mat.activated.connect(self.llenar_paral)
+        self.Combo_Par.activated.connect(self.llenar_pract)
 
         self.retranslateUi(EditorRegistros)
         QtCore.QMetaObject.connectSlotsByName(EditorRegistros)
         self.Bot_Sal.clicked.connect(lambda: EditorRegistros.close())
+        self.label_3.hide()
+        self.Combo_ParP.hide()
+    
+    
+    def llenar_paral(self):
+        #print(self.Combo_Mat.currentText())
+        self.Combo_ParP.hide()
+        self.label_3.hide()
+        self.Combo_Par.clear()
+        self.Combo_Par.addItems(get_paralelos(self.Combo_Mat.currentText()))
+    
+    def llenar_pract(self):
+        self.Combo_ParP.clear()
+        practicos = get_practicos(self.Combo_Mat.currentText(),self.Combo_Par.currentText())
+        if len(practicos)!=0:
+            self.label_3.show()
+            self.Combo_ParP.show()
+            self.Combo_ParP.addItems(practicos)
+        
+
+
 
     def retranslateUi(self, EditorRegistros):
         _translate = QtCore.QCoreApplication.translate

@@ -128,7 +128,15 @@ class Ui_Dialog(object):
             if type(val_registro(clasep))==list:
                 clasep=val_registro(clasep)
             registrar_info(materia,paralelo,claset_1,claset_2,clasep,paralelo_p)
-            
+            boton = QtWidgets.QMessageBox()
+            boton.setWindowTitle("Información")
+            boton.setIcon(QtWidgets.QMessageBox.Information)
+            boton.setText("Datos Ingresados Existosamente.")
+            x = boton.exec_()
+            if self.Check_Prac.isChecked():                
+                self.borrar("Solo Practico")
+            else:
+                self.borrar("Info")
         else:
             boton = QtWidgets.QMessageBox()
             boton.setWindowTitle("Error")
