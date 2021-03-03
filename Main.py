@@ -19,8 +19,6 @@ from os import path,remove
 
 
 
-
-
 dias=["Lunes", "Martes", "Miércoles", "Jueves", "Viernes","Sábado"]
 cad=""
 for x in range(7, 23):

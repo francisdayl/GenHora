@@ -49,6 +49,71 @@ def get_practicos(materia,paralelo):
     
     return l_par
 
+def get_clasesT(mate,para):
+    lis_clas=[]
+    conn = sqlite3.connect('registros.db')
+    curs = conn.cursor()
+    pars = curs.execute("""SELECT dia,hora_ini,hora_fin from ClasesT WHERE materia='{}' AND paralelo='{}' """.format(mate,para)).fetchall()
+    for tups in pars:
+        lt=[]
+        for datos in tups:
+            lt.append(datos)
+        lis_clas.append(lt)
+    conn.commit()
+    conn.close()
+    return lis_clas
+
+
+def get_clasesP(mate,para,parap):
+    lis_clas=[]
+    conn = sqlite3.connect('registros.db')
+    curs = conn.cursor()
+    pars = curs.execute("""SELECT dia,hora_ini,hora_fin from ClasesP WHERE materia='{}' AND paralelo='{}' AND paralelop ='{}' """.format(mate,para,parap)).fetchall()
+    for tups in pars:
+        lt=[]
+        for datos in tups:
+            lt.append(datos)
+        lis_clas.append(lt)
+    conn.commit()
+    conn.close()
+    return lis_clas
+
+def elim_materia(mate):
+    conn = sqlite3.connect('registros.db')
+    curs = conn.cursor()
+    
+    curs.execute("""DELETE FROM ClasesP WHERE materia='{}' """.format(mate))
+    curs.execute("""DELETE FROM ClasesT WHERE materia='{}' """.format(mate))
+    curs.execute("""DELETE FROM Paralelos WHERE materia='{}' """.format(mate))
+    curs.execute("""DELETE FROM Practicos WHERE materia='{}' """.format(mate))
+    curs.execute("""DELETE FROM Materias WHERE materia='{}' """.format(mate))
+
+    conn.commit()
+    conn.close()
+
+def elim_paral(mate,paral):
+    conn = sqlite3.connect('registros.db')
+    curs = conn.cursor()
+    
+    curs.execute("""DELETE FROM ClasesP WHERE materia='{}' AND paralelo = '{}' """.format(mate,paral))
+    curs.execute("""DELETE FROM ClasesT WHERE materia='{}' AND paralelo = '{}' """.format(mate,paral))
+    curs.execute("""DELETE FROM Paralelos WHERE materia='{}' AND paralelo = '{}' """.format(mate,paral))
+    curs.execute("""DELETE FROM Practicos WHERE materia='{}' AND paralelo = '{}' """.format(mate,paral))
+
+    conn.commit()
+    conn.close()
+
+def elim_prac(mate,paral,paralp):
+    conn = sqlite3.connect('registros.db')
+    curs = conn.cursor()
+    
+    curs.execute("""DELETE FROM ClasesP WHERE materia='{}' AND paralelo = '{}' AND paralelop = '{}' """.format(mate,paral))
+    curs.execute("""DELETE FROM Practicos WHERE materia='{}' AND paralelo = '{}'  AND paralelop = '{}' """.format(mate,paral))
+
+    conn.commit()
+    conn.close()
+
+
 
 def crear_db():
     if not path.exists('registros.db'):
@@ -72,22 +137,22 @@ def registrar_info( mate, paral, clase1, clase2, clasep, paralelo_p):
     lista_clases = [clase1, clase2]    
     if len(curs.execute("""SELECT paralelo FROM Paralelos WHERE materia='{}' AND paralelo='{}' """.format(mate,paral)).fetchall())==0:
         curs.execute("""INSERT INTO Paralelos VALUES ('{}','{}')""".format(mate,paral))
-            
         for clase in lista_clases:
-            dia = clase[0]
-            hor_i = clase[1]
-            hor_f = clase[2]
             if len(clase)!=0:
+                dia = clase[0]
+                hor_i = clase[1]
+                hor_f = clase[2]
                 if len(curs.execute("""SELECT dia FROM ClasesT WHERE materia='{}' AND paralelo='{}' AND dia='{}' """.format(mate,paral,dia)).fetchall())==0:
                     curs.execute("""INSERT INTO ClasesT VALUES ('{}','{}','{}','{}','{}')""".format(mate,paral,dia,hor_i,hor_f))
                     
     else:
         for clase in lista_clases:
-            dia = clase[0]
-            hor_i = clase[1]
-            hor_f = clase[2]
-            curs.execute("""UPDATE ClasesT SET dia='{}', hora_ini='{}', hora_fin='{}'  WHERE materia='{}' AND paralelo='{}' AND dia= '{}' """.format(dia,hor_i,hor_f,mate,paral,dia))
-     
+            if len(clase)!=0:
+                dia = clase[0]
+                hor_i = clase[1]
+                hor_f = clase[2]
+                curs.execute("""UPDATE ClasesT SET dia='{}', hora_ini='{}', hora_fin='{}'  WHERE materia='{}' AND paralelo='{}' AND dia= '{}' """.format(dia,hor_i,hor_f,mate,paral,dia))
+        
     if len(paralelo_p)!=0:
         dia = clasep[0]
         hor_i = clasep[1]
@@ -102,7 +167,7 @@ def registrar_info( mate, paral, clase1, clase2, clasep, paralelo_p):
            
         #else:
     conn.commit()
-    conn.close()
+    conn.close()  
     
 #Funciones GenHora
 

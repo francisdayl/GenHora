@@ -148,16 +148,23 @@ class Ui_Dialog(object):
     def val_campos(self, mate, paral, clase1, clase2, clasep, paralelo_p):
         if len(mate)<2 or len(paral)==0:
             return False
-        if len(clase1)==0 and len(clase2)==0:
+        if len(clase1)==0 and len(clase2)==0 :
             return False
+        
         if len(clase1)!=0:
             if type(val_registro(clase1))==bool:
                 return False
+        
         if len(clase2)!=0:
             if type(val_registro(clase2))==bool:
                 return False
-        if len(paralelo_p)==0 and type(val_registro(clasep))==bool:
+        
+        if (len(paralelo_p)==0 and len(clasep)!=0) or (len(paralelo_p)!=0 and len(clasep)==0):            
             return False
+        if len(clasep)!=0:
+            if type(val_registro(clasep))==bool:
+                return False
+        
         return True
     
     def borrar(self, opc):

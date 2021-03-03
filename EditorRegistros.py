@@ -163,31 +163,128 @@ class Ui_EditorRegistros(object):
         self.Combo_Mat.addItems(get_materias())
         self.Combo_Mat.activated.connect(self.llenar_paral)
         self.Combo_Par.activated.connect(self.llenar_pract)
+        self.Combo_ParP.activated.connect(self.llenar_info)
 
         self.retranslateUi(EditorRegistros)
         QtCore.QMetaObject.connectSlotsByName(EditorRegistros)
         self.Bot_Sal.clicked.connect(lambda: EditorRegistros.close())
+        self.Bot_BMat.clicked.connect(self.borrar_materia)
+        self.Bot_BPar.clicked.connect(self.borrar_paralelo)
+        self.Bot_GCamb.clicked.connect(self.guardar_cambios)
+        self.Combo_Mat.clearEditText()
+
         self.label_3.hide()
         self.Combo_ParP.hide()
+        self.hide_info()
     
     
     def llenar_paral(self):
         #print(self.Combo_Mat.currentText())
+        self.hide_info()
         self.Combo_ParP.hide()
         self.label_3.hide()
         self.Combo_Par.clear()
+        self.Combo_Par.clearEditText()
         self.Combo_Par.addItems(get_paralelos(self.Combo_Mat.currentText()))
+        
+        
+        
     
     def llenar_pract(self):
+        self.hide_info()
         self.Combo_ParP.clear()
+        self.Combo_ParP.hide()
+        self.label_3.hide()
         practicos = get_practicos(self.Combo_Mat.currentText(),self.Combo_Par.currentText())
         if len(practicos)!=0:
             self.label_3.show()
             self.Combo_ParP.show()
             self.Combo_ParP.addItems(practicos)
+        else:
+            self.llenar_info()
+    
+    def llenar_info(self):
+        self.Label_MatAct.show()
+        self.label_6.show()
+        self.label_5.show()
+        self.label_4.show()
+        registros_t = get_clasesT(self.Combo_Mat.currentText(),self.Combo_Par.currentText())
+        elems = [[self.Label_1C,self.Text_D1T,self.Text_HI1T,self.Text_HF1T],[self.Label_2C,self.Text_D2T,self.Text_HI2T,self.Text_HF2T]]
+        for i in range(len(registros_t)):
+            cont = 0
+            for j in range(len(elems[i])):
+                elems[i][j].show()
+                if cont>0:
+                    
+                    elems[i][j].setPlainText(registros_t[i][cont-1])
+                cont+=1
+
+
+        if self.Combo_ParP.isHidden():
+            self.Label_MatAct.setText(self.Combo_Mat.currentText()+" Par: " + self.Combo_Par.currentText())
+        else:
+            self.Label_MatAct.setText(self.Combo_Mat.currentText()+" Par: " + self.Combo_Par.currentText()+ " Pract: " + self.Combo_ParP.currentText())
+            registros_p = get_clasesP(self.Combo_Mat.currentText(),self.Combo_Par.currentText(),self.Combo_ParP.currentText())
+            cont = 0
+            
+            for elm in [self.Label_CP,self.Text_DP,self.Text_HIP,self.Text_HFP]:
+                elm.show()
+                if cont>0:
+                    elm.setPlainText(registros_p[0][cont-1])
+                cont+=1
+            
+    
+    def hide_info(self):
+        elems = [[self.Label_1C,self.Text_D1T,self.Text_HI1T,self.Text_HF1T],[self.Label_2C,self.Text_D2T,self.Text_HI2T,self.Text_HF2T],[self.Label_CP,self.Text_DP,self.Text_HIP,self.Text_HFP]]
+        self.label_6.hide()
+        self.label_5.hide()
+        self.label_4.hide()
+        self.Label_MatAct.hide()
+        for i in range(3):
+            for j in range(4):
+                elems[i][j].hide()
+
+
+    def guardar_cambios(self):
+        if self.Label_1C.isHidden():
+            boton = QtWidgets.QMessageBox()
+            boton.setWindowTitle("Error")
+            boton.setIcon(QtWidgets.QMessageBox.Critical)
+            boton.setText("No hay datos por modificar")
+            x = boton.exec_()
+
+        pass
+
+    def borrar_materia(self):
         
+        elim_materia(self.Combo_Mat.currentText())
+        self.hide_info()
+        boton = QtWidgets.QMessageBox()
+        boton.setWindowTitle("Información")
+        boton.setIcon(QtWidgets.QMessageBox.Information)
+        boton.setText("Materia Eliminada Existosamente.")
+        x = boton.exec_()
+        self.Combo_Mat.clearEditText()
+        self.Combo_Par.clear()
+        self.Combo_Par.clearEditText()
+        self.Combo_Mat.clear()
+        self.Combo_Mat.addItems(get_materias())
 
-
+    def borrar_paralelo(self):
+        if len(get_paralelos(self.Combo_Mat.currentText()))==1:
+            self.borrar_materia()
+        else:
+            elim_paral(self.Combo_Mat.currentText(), self.Combo_Par.currentText())
+            self.hide_info()
+            boton = QtWidgets.QMessageBox()
+            boton.setWindowTitle("Información")
+            boton.setIcon(QtWidgets.QMessageBox.Information)
+            boton.setText("Paralelo de Eliminado Existosamente.")
+            x = boton.exec_()
+            self.Combo_Par.clear()
+            self.Combo_Par.addItems(get_paralelos(self.Combo_Mat.currentText()))
+    
+    
 
     def retranslateUi(self, EditorRegistros):
         _translate = QtCore.QCoreApplication.translate
