@@ -177,18 +177,26 @@ class Ui_MainWindow(object):
         self.Bot_GenHor.clicked.connect(self.generarHorarios)
         self.Bot_AgrReg.clicked.connect(self.abrir_AgregarReg)
 
-    def abrir_EditorReg(self):    
-        print("Edit Reg")    
-        edit_r.show()
+    def abrir_EditorReg(self):   
+        if path.exists("registros.db"):
+            ui_editor.setupUi(edit_r)
+            edit_r.show()
+
+        else:
+            boton = QtWidgets.QMessageBox()
+            boton.setWindowTitle("Error")
+            boton.setIcon(QtWidgets.QMessageBox.Critical)
+            boton.setText("No existen registros")
+            x = boton.exec_() 
         #widget.setCurrentIndex(1)
 
     def eliminarReg(self):
         if (path.exists("registros.db")):
-            remove("registros.db")
-            self.boton_info("Registros eliminados exitosamente")
+            borrar_registros()
+            
         else:            
             self.boton_info("No existen registros por eliminar")
-        print("Se eliminaron los registros")
+        
 
     def generarHorarios(self):
         print("Se generaron N horarios")
@@ -231,7 +239,7 @@ class Ui_MainWindow(object):
 
 
 
-
+crear_db()
 app = QtWidgets.QApplication(sys.argv)
 main = QtWidgets.QMainWindow()
 edit_r = QtWidgets.QDialog()
@@ -244,9 +252,9 @@ ui_main.setupUi(main)
 
 ui_asis= Ui_AsistenteRegistros()
 ui_asis.setupUi(asistente_r)
-
 ui_editor =  Ui_EditorRegistros()
-ui_editor.setupUi(edit_r)
+if(path.exists("registros.db")):
+    ui_editor.setupUi(edit_r)
 
 ui_regist = Ui_Dialog()
 ui_regist.setupUi(agg_r)

@@ -172,7 +172,7 @@ class Ui_EditorRegistros(object):
         self.Bot_BPar.clicked.connect(self.borrar_paralelo)
         self.Bot_GCamb.clicked.connect(self.guardar_cambios)
         self.Combo_Mat.clearEditText()
-
+        self.Combo_Par.clearEditText()
         self.label_3.hide()
         self.Combo_ParP.hide()
         self.hide_info()
@@ -252,11 +252,40 @@ class Ui_EditorRegistros(object):
             boton.setIcon(QtWidgets.QMessageBox.Critical)
             boton.setText("No hay datos por modificar")
             x = boton.exec_()
+        else:
+            exito = False
+            #datos_texts = [[self.Text_D1T.toPlainText(),self.Text_HI1T.toPlainText(),self.Text_HF1T.toPlainText()],[self.Text_D2T.toPlainText(),self.Text_HI2T.toPlainText(),self.Text_HF2T.toPlainText()],[self.Text_DP.toPlainText(),self.Text_HIP.toPlainText(),self.Text_HFP.toPlainText()]]
+            #esults_vals = []
+            if self.Label_2C.isHidden() and self.Label_CP.isHidden():
+                datos_texts = [[self.Text_D1T.toPlainText(),self.Text_HI1T.toPlainText(),self.Text_HF1T.toPlainText()]]
+                if type(val_registro("{}\t{}\t{}".format(datos_texts[0][0],datos_texts[0][1],datos_texts[0][2])))!=bool:
+                    registrar_info(self.Combo_Mat.currentText(),self.Combo_Par.currentText(), datos_texts[0],[],[],self.Combo_ParP.currentText())
+                    exito = True
+            elif self.Label_CP.isHidden():
+                 datos_texts = [[self.Text_D1T.toPlainText(),self.Text_HI1T.toPlainText(),self.Text_HF1T.toPlainText()],[self.Text_D2T.toPlainText(),self.Text_HI2T.toPlainText(),self.Text_HF2T.toPlainText()]]
+            
+                 if type(val_registro("{}\t{}\t{}".format(datos_texts[1][0],datos_texts[1][1],datos_texts[1][2])))!=bool and type(val_registro("{}\t{}\t{}".format(datos_texts[0][0],datos_texts[0][1],datos_texts[0][2])))!=bool :
+                    registrar_info(self.Combo_Mat.currentText(),self.Combo_Par.currentText(), [self.Text_D1T.toPlainText(),self.Text_HI1T.toPlainText(),self.Text_HF1T.toPlainText()],[self.Text_D2T.toPlainText(),self.Text_HI2T.toPlainText(),self.Text_HF2T.toPlainText()],[],self.Combo_ParP.currentText())
+                    exito = True
+            else:
+                datos_texts = [[self.Text_D1T.toPlainText(),self.Text_HI1T.toPlainText(),self.Text_HF1T.toPlainText()],[self.Text_D2T.toPlainText(),self.Text_HI2T.toPlainText(),self.Text_HF2T.toPlainText()],[self.Text_DP.toPlainText(),self.Text_HIP.toPlainText(),self.Text_HFP.toPlainText()]]
+                if type(val_registro("{}\t{}\t{}".format(datos_texts[0][0],datos_texts[0][1],datos_texts[0][2])))!=bool and type(val_registro("{}\t{}\t{}".format(datos_texts[1][0],datos_texts[1][1],datos_texts[1][2])))!=bool and type(val_registro("{}\t{}\t{}".format(datos_texts[2][0],datos_texts[2][1],datos_texts[2][2])))!=bool:
+                    registrar_info(self.Combo_Mat.currentText(),self.Combo_Par.currentText(), [self.Text_D1T.toPlainText(),self.Text_HI1T.toPlainText(),self.Text_HF1T.toPlainText()],[self.Text_D2T.toPlainText(),self.Text_HI2T.toPlainText(),self.Text_HF2T.toPlainText()],[self.Text_DP.toPlainText(),self.Text_HIP.toPlainText(),self.Text_HFP.toPlainText()],self.Combo_ParP.currentText())
+                    exito = True
+            if exito:
+                boton = QtWidgets.QMessageBox()
+                boton.setWindowTitle("Información")
+                boton.setIcon(QtWidgets.QMessageBox.Information)
+                boton.setText("Cambios Guardados Exitosamente")
+                x = boton.exec_()
+            else:
+                boton = QtWidgets.QMessageBox()
+                boton.setWindowTitle("Error")
+                boton.setIcon(QtWidgets.QMessageBox.Critical)
+                boton.setText("No se guardaron los cambios.\nVerifique los campos modificados")
+                x = boton.exec_()
 
-        pass
-
-    def borrar_materia(self):
-        
+    def borrar_materia(self):        
         elim_materia(self.Combo_Mat.currentText())
         self.hide_info()
         boton = QtWidgets.QMessageBox()

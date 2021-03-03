@@ -1,5 +1,6 @@
 import sqlite3
 from os import path,remove
+import pickle
 
 dias=["Lunes", "Martes", "Miércoles", "Jueves", "Viernes","Sábado"]
 cad=""
@@ -8,6 +9,11 @@ for x in range(7, 23):
             x = "0" + str(x)
         cad += str(x) + ":00," + str(x) + ":30,"
 horas = cad.split(",")[:-1]
+
+
+def borrar_registros():
+    if path.exists("registros.db"):
+        remove("registros.db")
 
 #QUERIES SQL
 
@@ -144,15 +150,18 @@ def registrar_info( mate, paral, clase1, clase2, clasep, paralelo_p):
                 hor_f = clase[2]
                 if len(curs.execute("""SELECT dia FROM ClasesT WHERE materia='{}' AND paralelo='{}' AND dia='{}' """.format(mate,paral,dia)).fetchall())==0:
                     curs.execute("""INSERT INTO ClasesT VALUES ('{}','{}','{}','{}','{}')""".format(mate,paral,dia,hor_i,hor_f))
-                    
+                 
     else:
+        l_clas = get_clasesT(mate,paral)
+        c = 0
         for clase in lista_clases:
             if len(clase)!=0:
                 dia = clase[0]
                 hor_i = clase[1]
                 hor_f = clase[2]
-                curs.execute("""UPDATE ClasesT SET dia='{}', hora_ini='{}', hora_fin='{}'  WHERE materia='{}' AND paralelo='{}' AND dia= '{}' """.format(dia,hor_i,hor_f,mate,paral,dia))
-        
+                
+                curs.execute("""UPDATE ClasesT SET dia='{}', hora_ini='{}', hora_fin='{}'  WHERE materia='{}' AND paralelo='{}' AND dia= '{}' """.format(dia,hor_i,hor_f,mate,paral,l_clas[c][0]))
+            c+=1
     if len(paralelo_p)!=0:
         dia = clasep[0]
         hor_i = clasep[1]
@@ -162,7 +171,7 @@ def registrar_info( mate, paral, clase1, clase2, clasep, paralelo_p):
             curs.execute("""INSERT INTO ClasesP VALUES ('{}','{}','{}','{}','{}','{}')""".format(mate,paral,paralelo_p,dia,hor_i,hor_f))
         else:
             
-            curs.execute("""UPDATE ClasesP SET hora_ini='{}', hora_fin='{}'  WHERE materia='{}' AND paralelo='{}' AND paralelop='{}' AND dia='{}' """.format(hor_i,hor_f,mate,paral,paralelo_p,dia))
+            curs.execute("""UPDATE ClasesP SET dia='{}', hora_ini='{}', hora_fin='{}'  WHERE materia='{}' AND paralelo='{}' AND paralelop='{}' """.format(dia, hor_i,hor_f,mate,paral,paralelo_p))
         #if len(curs.execute("""SELECT dia FROM ClasesP WHERE materia='{}' AND paralelo='{}' AND paralelop='{}' AND dia='{}' """.format(mate,paral,paralelo_p,dia)).fetchall())==0:
            
         #else:
