@@ -1,22 +1,83 @@
 import sqlite3
 from os import path,remove
 import pickle
+from itertools import combinations
+import numpy as np 
+import pandas as pd
 
 dias=["Lunes", "Martes", "Miércoles", "Jueves", "Viernes","Sábado"]
+
 cad=""
 for x in range(7, 23):
-        if len(str(x)) != 2:
-            x = "0" + str(x)
-        cad += str(x) + ":00," + str(x) + ":30,"
+    if len(str(x)) != 2:
+        x = "0" + str(x)
+    cad += str(x) + ":00," + str(x) + ":30,"
 horas = cad.split(",")[:-1]
 
+horas_clase=[]
+for x in range(len(horas)-1):
+    horas_clase.append(horas[x]+" - "+horas[x+1])
 
-def borrar_registros():
-    if path.exists("registros.db"):
-        remove("registros.db")
 
 #QUERIES SQL
 
+def crear_db():
+    if not path.exists('registros.db'):
+          
+        conn = sqlite3.connect('registros.db')
+        curs = conn.cursor()
+        curs.execute('''CREATE TABLE Materias  (materia CHAR PRIMARY KEY )''')
+        curs.execute('''CREATE TABLE Paralelos (materia CHAR , paralelo CHAR, PRIMARY KEY(materia,paralelo) , FOREIGN KEY (materia) REFERENCES Materias(materia) )''')
+        curs.execute('''CREATE TABLE ClasesT   (materia CHAR , paralelo CHAR,  dia CHAR, hora_ini CHAR, hora_fin CHAR, PRIMARY KEY(materia,paralelo,dia), FOREIGN KEY (materia,paralelo) REFERENCES Paralelos (materia,paralelo)) ''')
+        curs.execute('''CREATE TABLE Practicos (materia CHAR , paralelo CHAR, paralelop CHAR, PRIMARY KEY(materia,paralelo,paralelop) , FOREIGN KEY (materia,paralelo) REFERENCES Paralelos (materia,paralelo) ) ''')
+        curs.execute('''CREATE TABLE ClasesP   (materia CHAR , paralelo CHAR, paralelop CHAR, dia CHAR, hora_ini CHAR, hora_fin CHAR, PRIMARY KEY(materia,paralelo,paralelop,dia) , FOREIGN KEY (materia,paralelo,paralelop) REFERENCES Practicos (materia, paralelo, paralelop)) ''')
+        conn.commit()
+        conn.close()
+
+
+def registrar_info( mate, paral, clase1, clase2, clasep, paralelo_p):
+    conn = sqlite3.connect("registros.db")
+    curs = conn.cursor()
+
+    if len(curs.execute("""SELECT * FROM Materias WHERE materia='{}' """.format(mate)).fetchall())==0:
+        curs.execute("""INSERT INTO Materias VALUES ('{}')""".format(mate))
+    lista_clases = [clase1, clase2]    
+    if len(curs.execute("""SELECT paralelo FROM Paralelos WHERE materia='{}' AND paralelo='{}' """.format(mate,paral)).fetchall())==0:
+        curs.execute("""INSERT INTO Paralelos VALUES ('{}','{}')""".format(mate,paral))
+        for clase in lista_clases:
+            if len(clase)!=0:
+                dia = clase[0]
+                hor_i = clase[1]
+                hor_f = clase[2]
+                if len(curs.execute("""SELECT dia FROM ClasesT WHERE materia='{}' AND paralelo='{}' AND dia='{}' """.format(mate,paral,dia)).fetchall())==0:
+                    curs.execute("""INSERT INTO ClasesT VALUES ('{}','{}','{}','{}','{}')""".format(mate,paral,dia,hor_i,hor_f))
+                 
+    else:
+        l_clas = get_clasesT(mate,paral)
+        c = 0
+        for clase in lista_clases:
+            if len(clase)!=0:
+                dia = clase[0]
+                hor_i = clase[1]
+                hor_f = clase[2]
+                
+                curs.execute("""UPDATE ClasesT SET dia='{}', hora_ini='{}', hora_fin='{}'  WHERE materia='{}' AND paralelo='{}' AND dia= '{}' """.format(dia,hor_i,hor_f,mate,paral,l_clas[c][0]))
+            c+=1
+    if len(paralelo_p)!=0:
+        dia = clasep[0]
+        hor_i = clasep[1]
+        hor_f = clasep[2]
+        if len(curs.execute("""SELECT paralelop FROM Practicos WHERE materia='{}' AND paralelo='{}' AND paralelop='{}' """.format(mate,paral,paralelo_p)).fetchall())==0:
+            curs.execute("""INSERT INTO Practicos VALUES ('{}','{}','{}')""".format(mate,paral,paralelo_p))
+            curs.execute("""INSERT INTO ClasesP VALUES ('{}','{}','{}','{}','{}','{}')""".format(mate,paral,paralelo_p,dia,hor_i,hor_f))
+        else:
+            
+            curs.execute("""UPDATE ClasesP SET dia='{}', hora_ini='{}', hora_fin='{}'  WHERE materia='{}' AND paralelo='{}' AND paralelop='{}' """.format(dia, hor_i,hor_f,mate,paral,paralelo_p))
+        #if len(curs.execute("""SELECT dia FROM ClasesP WHERE materia='{}' AND paralelo='{}' AND paralelop='{}' AND dia='{}' """.format(mate,paral,paralelo_p,dia)).fetchall())==0:
+           
+        #else:
+    conn.commit()
+    conn.close()  
 
 def get_materias():
     conn = sqlite3.connect('registros.db')
@@ -121,62 +182,6 @@ def elim_prac(mate,paral,paralp):
 
 
 
-def crear_db():
-    if not path.exists('registros.db'):
-          
-        conn = sqlite3.connect('registros.db')
-        curs = conn.cursor()
-        curs.execute('''CREATE TABLE Materias  (materia CHAR PRIMARY KEY )''')
-        curs.execute('''CREATE TABLE Paralelos (materia CHAR , paralelo CHAR, PRIMARY KEY(materia,paralelo) , FOREIGN KEY (materia) REFERENCES Materias(materia) )''')
-        curs.execute('''CREATE TABLE ClasesT   (materia CHAR , paralelo CHAR,  dia CHAR, hora_ini CHAR, hora_fin CHAR, PRIMARY KEY(materia,paralelo,dia), FOREIGN KEY (materia,paralelo) REFERENCES Paralelos (materia,paralelo)) ''')
-        curs.execute('''CREATE TABLE Practicos (materia CHAR , paralelo CHAR, paralelop CHAR, PRIMARY KEY(materia,paralelo,paralelop) , FOREIGN KEY (materia,paralelo) REFERENCES Paralelos (materia,paralelo) ) ''')
-        curs.execute('''CREATE TABLE ClasesP   (materia CHAR , paralelo CHAR, paralelop CHAR, dia CHAR, hora_ini CHAR, hora_fin CHAR, PRIMARY KEY(materia,paralelo,paralelop,dia) , FOREIGN KEY (materia,paralelo,paralelop) REFERENCES Practicos (materia, paralelo, paralelop)) ''')
-        conn.commit()
-        conn.close()
-
-def registrar_info( mate, paral, clase1, clase2, clasep, paralelo_p):
-    conn = sqlite3.connect("registros.db")
-    curs = conn.cursor()
-
-    if len(curs.execute("""SELECT * FROM Materias WHERE materia='{}' """.format(mate)).fetchall())==0:
-        curs.execute("""INSERT INTO Materias VALUES ('{}')""".format(mate))
-    lista_clases = [clase1, clase2]    
-    if len(curs.execute("""SELECT paralelo FROM Paralelos WHERE materia='{}' AND paralelo='{}' """.format(mate,paral)).fetchall())==0:
-        curs.execute("""INSERT INTO Paralelos VALUES ('{}','{}')""".format(mate,paral))
-        for clase in lista_clases:
-            if len(clase)!=0:
-                dia = clase[0]
-                hor_i = clase[1]
-                hor_f = clase[2]
-                if len(curs.execute("""SELECT dia FROM ClasesT WHERE materia='{}' AND paralelo='{}' AND dia='{}' """.format(mate,paral,dia)).fetchall())==0:
-                    curs.execute("""INSERT INTO ClasesT VALUES ('{}','{}','{}','{}','{}')""".format(mate,paral,dia,hor_i,hor_f))
-                 
-    else:
-        l_clas = get_clasesT(mate,paral)
-        c = 0
-        for clase in lista_clases:
-            if len(clase)!=0:
-                dia = clase[0]
-                hor_i = clase[1]
-                hor_f = clase[2]
-                
-                curs.execute("""UPDATE ClasesT SET dia='{}', hora_ini='{}', hora_fin='{}'  WHERE materia='{}' AND paralelo='{}' AND dia= '{}' """.format(dia,hor_i,hor_f,mate,paral,l_clas[c][0]))
-            c+=1
-    if len(paralelo_p)!=0:
-        dia = clasep[0]
-        hor_i = clasep[1]
-        hor_f = clasep[2]
-        if len(curs.execute("""SELECT paralelop FROM Practicos WHERE materia='{}' AND paralelo='{}' AND paralelop='{}' """.format(mate,paral,paralelo_p)).fetchall())==0:
-            curs.execute("""INSERT INTO Practicos VALUES ('{}','{}','{}')""".format(mate,paral,paralelo_p))
-            curs.execute("""INSERT INTO ClasesP VALUES ('{}','{}','{}','{}','{}','{}')""".format(mate,paral,paralelo_p,dia,hor_i,hor_f))
-        else:
-            
-            curs.execute("""UPDATE ClasesP SET dia='{}', hora_ini='{}', hora_fin='{}'  WHERE materia='{}' AND paralelo='{}' AND paralelop='{}' """.format(dia, hor_i,hor_f,mate,paral,paralelo_p))
-        #if len(curs.execute("""SELECT dia FROM ClasesP WHERE materia='{}' AND paralelo='{}' AND paralelop='{}' AND dia='{}' """.format(mate,paral,paralelo_p,dia)).fetchall())==0:
-           
-        #else:
-    conn.commit()
-    conn.close()  
     
 #Funciones GenHora
 
@@ -206,4 +211,99 @@ def val_dia(dia):
     if dia not in dias:
         return False
     return dia.strip()
+    
+def borrar_registros():
+    if path.exists("registros.db"):
+        remove("registros.db")
+
+def val_choque(diccio,diccio2, clases):
+    for clase in clases:
+        dia = clase[0]
+        hor_i = clase[1]
+        hor_f = clase[2]
+        dif = horas.index(hor_f)-horas.index(hor_i)
+        reemp = "00:00,"*dif
+        l_reemp = reemp[:-1].split(",")
+        if hor_i in diccio[dia]:
+            diccio[dia][horas.index(hor_i):horas.index(hor_f)] = l_reemp
+            diccio2[dia][horas.index(hor_i):horas.index(hor_f)] = l_reemp
+            
+        else:
+            return False
+    return diccio,diccio2
+
+def llenar_matriz(M,dic,nom_mat):
+    clavs = list(dic.keys())
+    for j in range(len(clavs)):
+        dia_dic=clavs[j]
+        
+        for i in range(len(dic[dia_dic])):
+            if dic[dia_dic][i]=="00:00":
+                M[i,j] = nom_mat
+
+    return M
+
+
+def get_clases_choque():
+    
+    conn = sqlite3.connect('registros.db')
+    curs = conn.cursor()
+    para_tot = curs.execute("""SELECT * FROM Paralelos""").fetchall()
+    materias=get_materias()
+    conn.commit()
+    conn.close()
+    sin_rep = []
+    for combs in combinations(para_tot,len(materias)):
+        mat_reg =[]
+        for pre_h in combs:
+            if pre_h[0] not in mat_reg:
+                mat_reg.append(pre_h[0])
+            else:
+                break
+        if len(mat_reg)==len(materias):
+            sin_rep.append(combs)
+            hor = {"Lunes": horas.copy(), "Martes": horas.copy(), "Miércoles": horas.copy(), "Jueves":horas.copy(), "Viernes": horas.copy(), "Sábado":horas.copy()}
+            hor_horario = {"Lunes": horas_clase.copy(), "Martes": horas_clase.copy(), "Miércoles": horas_clase.copy(), "Jueves":horas_clase.copy(), "Viernes": horas_clase.copy(), "Sábado": horas_clase.copy()}
+                
+            valido=True
+            #Hacer uso de la matriz para llenar directo
+            for pre_h in combs:                
+                #Validar materias complementarias *
+                clases_t = get_clasesT(pre_h[0],pre_h[1])
+                validchoque = val_choque(hor,hor_horario,clases_t)
+                if type(validchoque)==bool:
+                    valido = False
+                    break
+                else:
+                    hor = validchoque[0]
+                    hor_horario = validchoque[1]
+                
+                pars_p = get_practicos(pre_h[0],pre_h[1]) 
+                if len(pars_p)!=0:
+                    for par_p in pars_p:
+                        clase_p = get_clasesP(pre_h[0],pre_h[1],par_p)
+                        validchoque = val_choque(hor,hor_horario,clase_p)
+                        if type(validchoque)==bool:
+                            valido = False
+                            break
+                        else:
+                            hor = validchoque[0]
+                            hor_horario = validchoque[1]
+            if valido:
+                M = np.empty((len(horas_clase),len(dias)),dtype=str)
+                print(pre_h)
+                return llenar_matriz(M,hor,pre_h[0]+" Par: "+pre_h[1])
+                
+
+
+    print(len(sin_rep))
+    print(len(list(combinations(para_tot,len(get_materias())))))
+
+#get_clases_choque()
+#for i in combinations(dias,4):
+#hor = {"Lunes": horas.copy(), "Martes": horas.copy()}
+#hor = val_choque(hor,["Lunes","07:00","08:30"])
+#print(val_choque(hor,["Lunes","07:00","08:30"]))
+#print(horas_clase)
+print(get_clases_choque())
 
