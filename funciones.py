@@ -216,36 +216,24 @@ def borrar_registros():
     if path.exists("registros.db"):
         remove("registros.db")
 
-def val_choque(diccio,diccio2, clases):
+def val_choque_llenar_mat(DF, clases,mate):
     for clase in clases:
         dia = clase[0]
         hor_i = clase[1]
         hor_f = clase[2]
-        dif = horas.index(hor_f)-horas.index(hor_i)
-        reemp = "00:00,"*dif
-        l_reemp = reemp[:-1].split(",")
-        if hor_i in diccio[dia]:
-            diccio[dia][horas.index(hor_i):horas.index(hor_f)] = l_reemp
-            diccio2[dia][horas.index(hor_i):horas.index(hor_f)] = l_reemp
-            
+        hori = horas_clase[horas.index(hor_i)]
+        horf = horas_clase[horas.index(hor_f)-1]
+        compa=DF.loc[hori:horf,dia]==""
+        if compa.all():
+            DF.loc[hori:horf,dia]=mate
         else:
             return False
-    return diccio,diccio2
 
-def llenar_matriz(M,dic,nom_mat):
-    clavs = list(dic.keys())
-    for j in range(len(clavs)):
-        dia_dic=clavs[j]
-        
-        for i in range(len(dic[dia_dic])):
-            if dic[dia_dic][i]=="00:00":
-                M[i,j] = nom_mat
-
-    return M
+    return DF
 
 
-def get_clases_choque():
-    
+def get_horarios():
+    horarios = {}
     conn = sqlite3.connect('registros.db')
     curs = conn.cursor()
     para_tot = curs.execute("""SELECT * FROM Paralelos""").fetchall()
@@ -253,6 +241,7 @@ def get_clases_choque():
     conn.commit()
     conn.close()
     sin_rep = []
+    conta_hor = 1
     for combs in combinations(para_tot,len(materias)):
         mat_reg =[]
         for pre_h in combs:
@@ -262,42 +251,75 @@ def get_clases_choque():
                 break
         if len(mat_reg)==len(materias):
             sin_rep.append(combs)
-            hor = {"Lunes": horas.copy(), "Martes": horas.copy(), "Miércoles": horas.copy(), "Jueves":horas.copy(), "Viernes": horas.copy(), "Sábado":horas.copy()}
-            hor_horario = {"Lunes": horas_clase.copy(), "Martes": horas_clase.copy(), "Miércoles": horas_clase.copy(), "Jueves":horas_clase.copy(), "Viernes": horas_clase.copy(), "Sábado": horas_clase.copy()}
-                
+            M = pd.DataFrame(np.empty((len(horas_clase),len(dias)),dtype=str), index=horas_clase, columns=dias, dtype='str')   
             valido=True
-            #Hacer uso de la matriz para llenar directo
+
             for pre_h in combs:                
                 #Validar materias complementarias *
                 clases_t = get_clasesT(pre_h[0],pre_h[1])
-                validchoque = val_choque(hor,hor_horario,clases_t)
+                validchoque = val_choque_llenar_mat(M,clases_t,pre_h[0]+" Par: "+pre_h[1])
+                
                 if type(validchoque)==bool:
                     valido = False
                     break
                 else:
-                    hor = validchoque[0]
-                    hor_horario = validchoque[1]
-                
+                    M = validchoque
+
                 pars_p = get_practicos(pre_h[0],pre_h[1]) 
                 if len(pars_p)!=0:
                     for par_p in pars_p:
                         clase_p = get_clasesP(pre_h[0],pre_h[1],par_p)
-                        validchoque = val_choque(hor,hor_horario,clase_p)
+                        validchoque = val_choque_llenar_mat(M,clase_p,pre_h[0]+" Par: "+pre_h[1] +" Pract: "+par_p)
                         if type(validchoque)==bool:
                             valido = False
                             break
                         else:
-                            hor = validchoque[0]
-                            hor_horario = validchoque[1]
+                            M = validchoque
             if valido:
-                M = np.empty((len(horas_clase),len(dias)),dtype=str)
-                print(pre_h)
-                return llenar_matriz(M,hor,pre_h[0]+" Par: "+pre_h[1])
+                horarios["Horario "+str(conta_hor)]=M
+                conta_hor+=1
                 
+    pickle.dump( horarios, open( "horarios_full.xd", "wb" ) )
+    return horarios
+                
+def filtrar_recortar(hora_ent,hora_sal,hueco,mats_max):
+    hors_filt = {}
+    horarios = pickle.load( open( "horarios_full.xd", "rb" ) )
+    conta = 1
+    for num_h in horarios:
+        horario = horarios[num_h]
+        if len(hora_ent)!=0 and hora_ent!="07:00":
+            cond_ent = horario.loc[:horas_clase[horas.index(hora_ent)],:]==""
+            if cond_ent.all().all():
+                horario = horario.drop(horas_clase[:horas_clase.index(horas_clase[horas.index(hora_ent)])])
+            else:
+                continue
+        if len(hora_sal)!=0 and hora_sal!="22:30":
+            cond_sal = horario.loc[horas_clase[horas.index(hora_sal)]:,:]==""
+            if cond_sal.all().all():
+                horario = horario.drop(horas_clase[horas_clase.index(horas_clase[horas.index(hora_sal)]):])
+            else:
+                continue
+        if len(mats_max)!=0:
+            mats_max = int(mats_max)
+            sirve = True
+            for d in dias:
+                unicos = horario[d].unique()
+                if "" in unicos:
+                    if len(unicos)-1>mats_max:
+                        sirve = False
+                        break:
+                if len(hueco)!=0:#Para hacer huecos
+                    #Hacer huecos
+            pass
+            if not sirve:
+                continue:        
+        
 
+        pass
 
-    print(len(sin_rep))
-    print(len(list(combinations(para_tot,len(get_materias())))))
+    print(horarios["Horario 1"])
+    pass 
 
 #get_clases_choque()
 #for i in combinations(dias,4):
@@ -305,5 +327,29 @@ def get_clases_choque():
 #hor = val_choque(hor,["Lunes","07:00","08:30"])
 #print(val_choque(hor,["Lunes","07:00","08:30"]))
 #print(horas_clase)
-print(get_clases_choque())
+#MP = pd.DataFrame(np.empty((len(horas_clase),len(dias)),dtype=str), index=horas_clase, columns=dias, dtype='str')
+#MP.fillna(42)
+#MP.loc["07:00 - 07:30":"08:30 - 09:00","Lunes"]="osiosi"
+
+#MP[MP==MP.isna()]="Hola"
+#print(MP.loc["07:00 - 07:30":"09:00 - 09:30","Martes"].isna().all())
+#print(MP)
+#compa=MP.loc["07:00 - 07:30":"09:00 - 09:30","Lunes"]==""
+#print(compa.all())
+#resps=get_horarios()
+#print(len(resps))
+#resps.to_csv("horario.csv",index=True,encoding="cp1252")
+#resps["Horario 1"].to_excel("horario.xlsx",index=True,encoding="cp1252")
+#filtrar_recortar("","","","")
+
+horarios = pickle.load( open( "horarios_full.xd", "rb" ) )
+hor_1 = horarios["Horario 1"]
+#hor_1.drop(columns=["Viernes"],axis=1)
+
+#hor_1=hor_1.drop(horas_clase[:horas_clase.index("09:00 - 09:30")])
+d = dias[0]
+print(hor_1[d].unique())
+#print(type(hor_1))
+
+
 
