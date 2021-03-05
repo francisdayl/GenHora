@@ -8,11 +8,20 @@ import pandas as pd
 dias=["Lunes", "Martes", "Miércoles", "Jueves", "Viernes","Sábado"]
 
 cad=""
+for x in range(13):
+    if len(str(x)) != 2:
+        x = "0" + str(x)
+    cad += str(x) + ":00," + str(x) + ":30,"
+lis_huecos=cad.split(",")[:-1]
+
+
+cad=""
 for x in range(7, 23):
     if len(str(x)) != 2:
         x = "0" + str(x)
     cad += str(x) + ":00," + str(x) + ":30,"
 horas = cad.split(",")[:-1]
+
 
 horas_clase=[]
 for x in range(len(horas)-1):
@@ -232,7 +241,14 @@ def val_choque_llenar_mat(DF, clases,mate):
     return DF
 
 
+def borrar_guardados():
+    remove("Horarios_filtrados.xlsx")
+    remove("horarios_filt.xd")
+    remove("horarios_full.xd")
+    remove("Horarios_Sin_Filtrar.xlsx")
+
 def get_horarios():
+    borrar_guardados()
     horarios = {}
     conn = sqlite3.connect('registros.db')
     curs = conn.cursor()
@@ -277,11 +293,36 @@ def get_horarios():
                             M = validchoque
             if valido:
                 horarios["Horario "+str(conta_hor)]=M
+                
+                if path.exists("Horarios_Sin_Filtrar.xlsx"):
+                    with pd.ExcelWriter('Horarios_Sin_Filtrar.xlsx',mode='a') as writer:  
+                        M.to_excel(writer, sheet_name="Horario "+str(conta_hor))
+                        
+                else:
+                    M.to_excel("Horarios_Sin_Filtrar.xlsx",sheet_name="Horario "+str(conta_hor)) 
                 conta_hor+=1
                 
     pickle.dump( horarios, open( "horarios_full.xd", "wb" ) )
-    return horarios
-                
+    
+    return len(horarios)
+
+def val_hueco(DF,hueco,indices):
+    cuenta = 0
+    cola = []
+    for hor in indices:
+        registro = DF.loc[hor]
+        if registro!="" and registro not in cola:
+            cola.append(registro)
+        if registro == "" and len(cola)==1:
+            cuenta+=1
+        elif registro !="" and len(cola)==2:
+            if cuenta>hueco:
+                return False
+            cuenta=0
+            cola.remove(cola[0])
+    return True
+
+
 def filtrar_recortar(hora_ent,hora_sal,hueco,mats_max):
     hors_filt = {}
     horarios = pickle.load( open( "horarios_full.xd", "rb" ) )
@@ -300,26 +341,50 @@ def filtrar_recortar(hora_ent,hora_sal,hueco,mats_max):
                 horario = horario.drop(horas_clase[horas_clase.index(horas_clase[horas.index(hora_sal)]):])
             else:
                 continue
+        mats_max = str(mats_max)
         if len(mats_max)!=0:
             mats_max = int(mats_max)
             sirve = True
             for d in dias:
-                unicos = horario[d].unique()
+                clas_horario= horario[d]
+                unicos = clas_horario.unique()                
                 if "" in unicos:
                     if len(unicos)-1>mats_max:
                         sirve = False
-                        break:
-                if len(hueco)!=0:#Para hacer huecos
-                    #Hacer huecos
-            pass
-            if not sirve:
-                continue:        
-        
+                        break
+                else:
+                    if len(unicos)>mats_max:
+                        sirve = False
+                        break
+                if len(hueco)!=0:#Para validar huecos huecos
+                    indices=clas_horario.index
+                    hueco2=lis_huecos.index(hueco)
+                    if "" in clas_horario:
+                        if len(clas_horario)>2:
+                            if not val_hueco(clas_horario,hueco2,indices):
+                                sirve = False
+                                break
+                    else:
+                        if len(clas_horario)>1:
+                            if not val_hueco(clas_horario,hueco2,indices):
+                                sirve = False
+                                break
+                    
+            if sirve:
+                hors_filt["Horario "+str(conta)] = horario
+                
+                if path.exists("Horarios_filtrados.xlsx"):
+                    with pd.ExcelWriter('Horarios_filtrados.xlsx',mode='a') as writer:  
+                        horario.to_excel(writer, sheet_name="Horario "+str(conta))
+                        
+                else:
+                    horario.to_excel("Horarios_filtrados.xlsx",sheet_name="Horario "+str(conta)) 
+                conta +=1
 
-        pass
+    pickle.dump( horarios, open( "horarios_filt.xd", "wb" ) )
+    return len(hors_filt)
 
-    print(horarios["Horario 1"])
-    pass 
+
 
 #get_clases_choque()
 #for i in combinations(dias,4):
@@ -342,14 +407,18 @@ def filtrar_recortar(hora_ent,hora_sal,hueco,mats_max):
 #resps["Horario 1"].to_excel("horario.xlsx",index=True,encoding="cp1252")
 #filtrar_recortar("","","","")
 
-horarios = pickle.load( open( "horarios_full.xd", "rb" ) )
-hor_1 = horarios["Horario 1"]
+#horarios = pickle.load( open( "horarios_full.xd", "rb" ) )
+#hor_1 = horarios["Horario 1"]
 #hor_1.drop(columns=["Viernes"],axis=1)
 
+
 #hor_1=hor_1.drop(horas_clase[:horas_clase.index("09:00 - 09:30")])
-d = dias[0]
-print(hor_1[d].unique())
-#print(type(hor_1))
+#val_hueco(hor_1.Lunes,1)
+#print("" in hor_1[d].unique())
+#new_h = filtrar_recortar("","13:30","02:00","2")
+#print(new_h)
+#print(new_h["Horario 1"])
+#print("fff")
+#print(get_horarios())
 
-
-
+#print("fff")
