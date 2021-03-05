@@ -9,7 +9,10 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-
+from os import path
+import pandas as pd
+from pandastable import Table, TableModel
+import pickle
 
 class Ui_AsistenteRegistros(object):
     def setupUi(self, AsistenteRegistros):
@@ -93,6 +96,13 @@ class Ui_AsistenteRegistros(object):
         QtCore.QMetaObject.connectSlotsByName(AsistenteRegistros)
         self.Bot_Sal.clicked.connect(lambda: AsistenteRegistros.close())
 
+
+        
+        #self.horarios_full=pickle.load( open( "horarios_full.xd", "rb" ) )
+        #print(len(self.horarios_full))
+        self.mostrar_horar(self.Frame)
+        
+
     def retranslateUi(self, AsistenteRegistros):
         _translate = QtCore.QCoreApplication.translate
         AsistenteRegistros.setWindowTitle(_translate("AsistenteRegistros", "Asistente de Registros - By David Yánez"))
@@ -103,7 +113,57 @@ class Ui_AsistenteRegistros(object):
         self.Label_hors.setText(_translate("AsistenteRegistros", "Horario"))
         self.Bot_Sal.setText(_translate("AsistenteRegistros", "Salir"))
         self.label_2.setText(_translate("AsistenteRegistros", "Materia a Registrar"))
+    
+    def mostrar_horar(self,Frame):
+        horarios_full = pickle.load( open( "horarios_full.xd", "rb" ) )
+        df = horarios_full["Horario 1"] 
+        table = pt = Table(self.Frame, dataframe=df)
+        table.showIndex()
+        pt.show()
+        
+        
 
+class TableModel(QtCore.QAbstractTableModel):
+
+    def __init__(self, data):
+        super(TableModel, self).__init__()
+        self._data = data
+
+    def data(self, index, role):
+        if role == Qt.DisplayRole:
+            value = self._data.iloc[index.row(), index.column()]
+            return str(value)
+
+    def rowCount(self, index):
+        return self._data.shape[0]
+
+    def columnCount(self, index):
+        return self._data.shape[1]
+
+    def headerData(self, section, orientation, role):
+        # section is the index of the column/row.
+        if role == Qt.DisplayRole:
+            if orientation == Qt.Horizontal:
+                return str(self._data.columns[section])
+
+            if orientation == Qt.Vertical:
+                return str(self._data.index[section])
+
+
+class MainWindow(QtWidgets.QMainWindow):
+
+    def __init__(self):
+        super().__init__()
+
+        self.table = QtWidgets.QTableView()
+
+        data = hor_1
+        
+
+        self.model = TableModel(data)
+        self.table.setModel(self.model)
+
+        self.setCentralWidget(self.table)
 
 if __name__ == "__main__":
     import sys

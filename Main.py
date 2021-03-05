@@ -199,7 +199,42 @@ class Ui_MainWindow(object):
         
 
     def generarHorarios(self):
-        print("Se generaron N horarios")
+        horaing = self.Text_Hing.toPlainText().strip()
+        horasal = self.Text_Hsal.toPlainText().strip()
+        hueco = self.Text_TMax.toPlainText().strip()
+        max_mat = self.Text_MMax.toPlainText().strip()
+        
+        if validar_parametros(horaing,horasal,hueco,max_mat):
+            mats_gen = get_horarios()
+            if len(horaing)==0 and len(horasal)==0 and len(hueco)==0 and len(max_mat)==0:
+               
+                if mats_gen>0:
+                    self.boton_info("Se generaron {} horarios".format(mats_gen))
+                else:
+                    
+                    boton = QtWidgets.QMessageBox()
+                    boton.setWindowTitle("Error")
+                    boton.setIcon(QtWidgets.QMessageBox.Critical)
+                    boton.setText("No se pudo generar ningún horario.\nAgregue más registros")
+                    x = boton.exec_()
+            else:
+                
+                mats_gen = filtrar_recortar(horaing,horasal,hueco,max_mat)
+                if mats_gen>0:
+                    self.boton_info("Se generaron {} horarios".format(mats_gen))
+                else:
+                    boton = QtWidgets.QMessageBox()
+                    boton.setWindowTitle("Error")
+                    boton.setIcon(QtWidgets.QMessageBox.Critical)
+                    boton.setText("No se pudo generar ningún horario.\nAgregue más registros o Modifique sus parametros")
+                    x = boton.exec_()
+        else:
+            
+            boton = QtWidgets.QMessageBox()
+            boton.setWindowTitle("Error")
+            boton.setIcon(QtWidgets.QMessageBox.Critical)
+            boton.setText("Error en los parametros ingresados\nVerifique los campos llenados")
+            x = boton.exec_()
 
     def abrir_AgregarReg(self):
         crear_db()

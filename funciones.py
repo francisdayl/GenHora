@@ -242,10 +242,14 @@ def val_choque_llenar_mat(DF, clases,mate):
 
 
 def borrar_guardados():
-    remove("Horarios_filtrados.xlsx")
-    remove("horarios_filt.xd")
-    remove("horarios_full.xd")
-    remove("Horarios_Sin_Filtrar.xlsx")
+    if path.exists("Horarios_filtrados.xlsx"):
+        remove("Horarios_filtrados.xlsx")
+    if path.exists("horarios_filt.xd"):
+        remove("horarios_filt.xd")
+    if path.exists("horarios_full.xd"):
+        remove("horarios_full.xd")
+    if path.exists("Horarios_Sin_Filtrar.xlsx"):
+        remove("Horarios_Sin_Filtrar.xlsx")
 
 def get_horarios():
     borrar_guardados()
@@ -322,6 +326,20 @@ def val_hueco(DF,hueco,indices):
             cola.remove(cola[0])
     return True
 
+def validar_parametros(hora_ent,hora_sal,hueco,mats_max):
+    if len(hora_ent)>0:
+        if hora_ent not in horas:
+            return False
+    if len(hora_sal)>0:
+        if hora_sal not in horas:
+            return False
+    if len(hueco)>0:
+        if hueco not in lis_huecos:
+            return False
+    if len(mats_max)>0:
+        if not mats_max.isdigit():
+            return False
+    return True
 
 def filtrar_recortar(hora_ent,hora_sal,hueco,mats_max):
     hors_filt = {}
@@ -407,8 +425,8 @@ def filtrar_recortar(hora_ent,hora_sal,hueco,mats_max):
 #resps["Horario 1"].to_excel("horario.xlsx",index=True,encoding="cp1252")
 #filtrar_recortar("","","","")
 
-#horarios = pickle.load( open( "horarios_full.xd", "rb" ) )
-#hor_1 = horarios["Horario 1"]
+horarios = pickle.load( open( "horarios_full.xd", "rb" ) )
+hor_1 = horarios["Horario 1"]
 #hor_1.drop(columns=["Viernes"],axis=1)
 
 
@@ -419,6 +437,64 @@ def filtrar_recortar(hora_ent,hora_sal,hueco,mats_max):
 #print(new_h)
 #print(new_h["Horario 1"])
 #print("fff")
+
 #print(get_horarios())
 
-#print("fff")
+#print("a")
+
+import sys
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import Qt
+import pandas as pd
+
+class TableModel(QtCore.QAbstractTableModel):
+
+    def __init__(self, data):
+        super(TableModel, self).__init__()
+        self._data = data
+
+    def data(self, index, role):
+        if role == Qt.DisplayRole:
+            value = self._data.iloc[index.row(), index.column()]
+            return str(value)
+
+    def rowCount(self, index):
+        return self._data.shape[0]
+
+    def columnCount(self, index):
+        return self._data.shape[1]
+
+    def headerData(self, section, orientation, role):
+        # section is the index of the column/row.
+        if role == Qt.DisplayRole:
+            if orientation == Qt.Horizontal:
+                return str(self._data.columns[section])
+
+            if orientation == Qt.Vertical:
+                return str(self._data.index[section])
+
+
+class MainWindow(QtWidgets.QMainWindow):
+
+    def __init__(self):
+        super().__init__()
+
+        self.table = QtWidgets.QTableView()
+
+        data = hor_1
+        
+
+        self.model = TableModel(data)
+        self.table.setModel(self.model)
+
+        self.setCentralWidget(self.table)
+
+
+app=QtWidgets.QApplication(sys.argv)
+window=MainWindow()
+window.resize(625,400)
+window.show()
+
+app.exec_()
+
+
