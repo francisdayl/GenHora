@@ -168,14 +168,14 @@ class Ui_AsistenteRegistros(object):
         self.pandasTv = QtWidgets.QTableView()
 
 
-
         self.contador=1
-        self.horarios=pickle.load( open( "horarios_full.xd", "rb" ) )
         
         if path.exists("horarios_filt.xd"):
             self.horarios=pickle.load( open( "horarios_filt.xd", "rb" ) )
             
-        
+        else:
+            self.horarios=pickle.load( open( "horarios_full.xd", "rb" ) )
+            
 
         self.df = self.horarios["Horario 1"]
         self.model = PandasModel(self.df)
@@ -187,6 +187,7 @@ class Ui_AsistenteRegistros(object):
         self.Bot_HSig.clicked.connect(self.siguiente_horario)
         self.Bot_HAnt.clicked.connect(self.anterior_horario)
         self.Bot_Reg.clicked.connect(self.registar_mate)
+        self.Bot_Emergencia.clicked.connect(self.emergencia)
 
     def siguiente_horario(self):
         if self.contador != len(self.horarios):
@@ -239,7 +240,7 @@ class Ui_AsistenteRegistros(object):
             self.contador=1
             self.horarios=pickle.load( open( "horarios_full.xd", "rb" ) )
             for i in range(self.List_MReg.count()):
-                mate = self.List_MReg.item().text()
+                mate = self.List_MReg.item(i).text()
                 self.horarios = filtrar_horarios(self.horarios,mate)
             self.Label_hors.setText("Horario {} de {}".format(self.contador,len(self.horarios)))
             self.df=self.horarios["Horario "+str(self.contador)]

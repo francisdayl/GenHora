@@ -220,11 +220,11 @@ class Ui_MainWindow(object):
             else:
                 
                 mats_gen = filtrar_recortar(horaing,horasal,hueco,max_mat)
-                print( mats_gen)
+                #print( mats_gen)
                 if mats_gen>0:
                     self.boton_info("Se generaron {} horarios".format(mats_gen))
                 else:
-                    print("error filtrado")
+                    #print("error filtrado")
                     boton = QtWidgets.QMessageBox()
                     boton.setWindowTitle("Error")
                     boton.setIcon(QtWidgets.QMessageBox.Critical)
@@ -241,11 +241,10 @@ class Ui_MainWindow(object):
     def abrir_AgregarReg(self):
         crear_db()
         agg_r.show()
-        print("Esta es la ventana para agregar registros")
+        #print("Esta es la ventana para agregar registros")
     
     def abrir_Asistente(self):
-        #widget.setCurrentIndex(3)
-        print("Esta es la ventana para abrir el asistente de registros")
+        
         if (path.exists("horarios_filt.xd") or path.exists("horarios_full.xd")) :
             ui_asis.setupUi(asistente_r)
             asistente_r.show()

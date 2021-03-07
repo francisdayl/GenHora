@@ -342,41 +342,46 @@ def validar_parametros(hora_ent,hora_sal,hueco,mats_max):
     return True
 
 def filtrar_recortar(hora_ent,hora_sal,hueco,mats_max):
+    if path.exists("Horarios_filtrados.xlsx"):
+        remove("Horarios_filtrados.xlsx")
+    if path.exists("horarios_filt.xd"):
+        remove("horarios_filt.xd")
     hors_filt = {}
     horarios = pickle.load( open( "horarios_full.xd", "rb" ) )
     
     conta = 1
     for num_h in horarios:
         horario = horarios[num_h]
-        print(horario)
+        #print(horario)
         if len(hora_ent)!=0 and hora_ent!="07:00":
-            cond_ent = horario.loc[:horas_clase[horas.index(hora_ent)],:]==""
-            if cond_ent.all().all():
-                horario = horario.drop(horas_clase[:horas_clase.index(horas_clase[horas.index(hora_ent)])])
-            else:
-                print(conta)
-                break
-                continue
-        break
+            cond_ent = horario.loc[:horas_clase[horas.index(hora_ent)-1],:]==""
+            if cond_ent.all().all():                
+                horario = horario.drop(horas_clase[:horas_clase.index(horas_clase[horas.index(hora_ent)])])                
+            else:                
+                continue        
+        
         if len(hora_sal)!=0 and hora_sal!="22:30":
             cond_sal = horario.loc[horas_clase[horas.index(hora_sal)]:,:]==""
-            if cond_sal.all().all():
-                horario = horario.drop(horas_clase[horas_clase.index(horas_clase[horas.index(hora_sal)]):])
-            else:
+            if cond_sal.all().all():                
+                horario = horario.drop(horas_clase[horas_clase.index(horas_clase[horas.index(hora_sal)]):])              
                 
+            else:                
                 continue
         mats_max = str(mats_max)
         
         
+        sirve = True
         if len(mats_max)!=0:
             mats_max = int(mats_max)
-            sirve = True
+            
             for d in dias:
                 clas_horario= horario[d]
-                unicos = clas_horario.unique()                
-                if "" in unicos:
+                unicos = clas_horario.unique()  
+                #print(unicos)              
+                if "" in unicos and len(unicos)>2:
                     if len(unicos)-1>mats_max:
                         sirve = False
+                        
                         break
                 else:
                     if len(unicos)>mats_max:
@@ -396,19 +401,19 @@ def filtrar_recortar(hora_ent,hora_sal,hueco,mats_max):
                                 sirve = False
                                 break
                     
-            if sirve:
-                print("Sirve "+str(conta))
-                hors_filt["Horario "+str(conta)] = horario
-                
-                if path.exists("Horarios_filtrados.xlsx"):
-                    with pd.ExcelWriter('Horarios_filtrados.xlsx',mode='a') as writer:  
-                        horario.to_excel(writer, sheet_name="Horario "+str(conta))
-                        
-                else:
-                    horario.to_excel("Horarios_filtrados.xlsx",sheet_name="Horario "+str(conta)) 
-                conta +=1
-
-    pickle.dump( horarios, open( "horarios_filt.xd", "wb" ) )
+        if sirve:
+            #print("Sirve "+str(conta))
+            hors_filt["Horario "+str(conta)] = horario
+            
+            if path.exists("Horarios_filtrados.xlsx"):
+                with pd.ExcelWriter('Horarios_filtrados.xlsx',mode='a') as writer:  
+                    horario.to_excel(writer, sheet_name="Horario "+str(conta))
+                    
+            else:
+                horario.to_excel("Horarios_filtrados.xlsx",sheet_name="Horario "+str(conta)) 
+            conta +=1
+    if len(hors_filt)>0:
+        pickle.dump(hors_filt, open( "horarios_filt.xd", "wb" ) )
     return len(hors_filt)
 
 def filtrar_horarios(dicc,materia):
@@ -422,6 +427,6 @@ def filtrar_horarios(dicc,materia):
     return hors
 
 
-print(filtrar_recortar("07:30","16:30","",""))
+#print(filtrar_recortar("08:30","16:30","",""))
 
 
