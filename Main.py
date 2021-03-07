@@ -220,9 +220,11 @@ class Ui_MainWindow(object):
             else:
                 
                 mats_gen = filtrar_recortar(horaing,horasal,hueco,max_mat)
+                print( mats_gen)
                 if mats_gen>0:
                     self.boton_info("Se generaron {} horarios".format(mats_gen))
                 else:
+                    print("error filtrado")
                     boton = QtWidgets.QMessageBox()
                     boton.setWindowTitle("Error")
                     boton.setIcon(QtWidgets.QMessageBox.Critical)
@@ -244,7 +246,15 @@ class Ui_MainWindow(object):
     def abrir_Asistente(self):
         #widget.setCurrentIndex(3)
         print("Esta es la ventana para abrir el asistente de registros")
-        asistente_r.show()
+        if (path.exists("horarios_filt.xd") or path.exists("horarios_full.xd")) :
+            ui_asis.setupUi(asistente_r)
+            asistente_r.show()
+        else:
+            boton = QtWidgets.QMessageBox()
+            boton.setWindowTitle("Error")
+            boton.setIcon(QtWidgets.QMessageBox.Critical)
+            boton.setText("No existen horarios Generados")
+            x = boton.exec_()
     
     def boton_info(self,mensaje):
         boton = QtWidgets.QMessageBox()
@@ -286,10 +296,12 @@ ui_main = Ui_MainWindow()
 ui_main.setupUi(main)
 
 ui_asis= Ui_AsistenteRegistros()
-ui_asis.setupUi(asistente_r)
+
 ui_editor =  Ui_EditorRegistros()
 if(path.exists("registros.db")):
     ui_editor.setupUi(edit_r)
+if (path.exists("horarios_filt.xd") and path.exists("horarios_full.xd")):
+    ui_asis.setupUi(asistente_r)
 
 ui_regist = Ui_Dialog()
 ui_regist.setupUi(agg_r)

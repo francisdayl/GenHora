@@ -344,22 +344,30 @@ def validar_parametros(hora_ent,hora_sal,hueco,mats_max):
 def filtrar_recortar(hora_ent,hora_sal,hueco,mats_max):
     hors_filt = {}
     horarios = pickle.load( open( "horarios_full.xd", "rb" ) )
+    
     conta = 1
     for num_h in horarios:
         horario = horarios[num_h]
+        print(horario)
         if len(hora_ent)!=0 and hora_ent!="07:00":
             cond_ent = horario.loc[:horas_clase[horas.index(hora_ent)],:]==""
             if cond_ent.all().all():
                 horario = horario.drop(horas_clase[:horas_clase.index(horas_clase[horas.index(hora_ent)])])
             else:
+                print(conta)
+                break
                 continue
+        break
         if len(hora_sal)!=0 and hora_sal!="22:30":
             cond_sal = horario.loc[horas_clase[horas.index(hora_sal)]:,:]==""
             if cond_sal.all().all():
                 horario = horario.drop(horas_clase[horas_clase.index(horas_clase[horas.index(hora_sal)]):])
             else:
+                
                 continue
         mats_max = str(mats_max)
+        
+        
         if len(mats_max)!=0:
             mats_max = int(mats_max)
             sirve = True
@@ -389,6 +397,7 @@ def filtrar_recortar(hora_ent,hora_sal,hueco,mats_max):
                                 break
                     
             if sirve:
+                print("Sirve "+str(conta))
                 hors_filt["Horario "+str(conta)] = horario
                 
                 if path.exists("Horarios_filtrados.xlsx"):
@@ -402,99 +411,17 @@ def filtrar_recortar(hora_ent,hora_sal,hueco,mats_max):
     pickle.dump( horarios, open( "horarios_filt.xd", "wb" ) )
     return len(hors_filt)
 
+def filtrar_horarios(dicc,materia):
+    hors = {}
+    conta = 1
+    for clav in dicc:
+        df = dicc[clav]==materia
+        if df.any().any():
+            hors["Horario "+str(conta)] = dicc[clav]
+            conta +=1
+    return hors
 
 
-#get_clases_choque()
-#for i in combinations(dias,4):
-#hor = {"Lunes": horas.copy(), "Martes": horas.copy()}
-#hor = val_choque(hor,["Lunes","07:00","08:30"])
-#print(val_choque(hor,["Lunes","07:00","08:30"]))
-#print(horas_clase)
-#MP = pd.DataFrame(np.empty((len(horas_clase),len(dias)),dtype=str), index=horas_clase, columns=dias, dtype='str')
-#MP.fillna(42)
-#MP.loc["07:00 - 07:30":"08:30 - 09:00","Lunes"]="osiosi"
-
-#MP[MP==MP.isna()]="Hola"
-#print(MP.loc["07:00 - 07:30":"09:00 - 09:30","Martes"].isna().all())
-#print(MP)
-#compa=MP.loc["07:00 - 07:30":"09:00 - 09:30","Lunes"]==""
-#print(compa.all())
-#resps=get_horarios()
-#print(len(resps))
-#resps.to_csv("horario.csv",index=True,encoding="cp1252")
-#resps["Horario 1"].to_excel("horario.xlsx",index=True,encoding="cp1252")
-#filtrar_recortar("","","","")
-
-horarios = pickle.load( open( "horarios_full.xd", "rb" ) )
-hor_1 = horarios["Horario 1"]
-#hor_1.drop(columns=["Viernes"],axis=1)
-
-
-#hor_1=hor_1.drop(horas_clase[:horas_clase.index("09:00 - 09:30")])
-#val_hueco(hor_1.Lunes,1)
-#print("" in hor_1[d].unique())
-#new_h = filtrar_recortar("","13:30","02:00","2")
-#print(new_h)
-#print(new_h["Horario 1"])
-#print("fff")
-
-#print(get_horarios())
-
-#print("a")
-
-import sys
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import Qt
-import pandas as pd
-
-class TableModel(QtCore.QAbstractTableModel):
-
-    def __init__(self, data):
-        super(TableModel, self).__init__()
-        self._data = data
-
-    def data(self, index, role):
-        if role == Qt.DisplayRole:
-            value = self._data.iloc[index.row(), index.column()]
-            return str(value)
-
-    def rowCount(self, index):
-        return self._data.shape[0]
-
-    def columnCount(self, index):
-        return self._data.shape[1]
-
-    def headerData(self, section, orientation, role):
-        # section is the index of the column/row.
-        if role == Qt.DisplayRole:
-            if orientation == Qt.Horizontal:
-                return str(self._data.columns[section])
-
-            if orientation == Qt.Vertical:
-                return str(self._data.index[section])
-
-
-class MainWindow(QtWidgets.QMainWindow):
-
-    def __init__(self):
-        super().__init__()
-
-        self.table = QtWidgets.QTableView()
-
-        data = hor_1
-        
-
-        self.model = TableModel(data)
-        self.table.setModel(self.model)
-
-        self.setCentralWidget(self.table)
-
-
-app=QtWidgets.QApplication(sys.argv)
-window=MainWindow()
-window.resize(625,400)
-window.show()
-
-app.exec_()
+print(filtrar_recortar("07:30","16:30","",""))
 
 

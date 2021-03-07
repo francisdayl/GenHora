@@ -35,22 +35,6 @@
    <string>Asistente de Registros - By David Yánez</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QFrame" name="Frame">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>40</y>
-      <width>661</width>
-      <height>251</height>
-     </rect>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::StyledPanel</enum>
-    </property>
-    <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
-    </property>
-   </widget>
    <widget class="QListView" name="List_MReg">
     <property name="geometry">
      <rect>
@@ -212,6 +196,39 @@
       <width>221</width>
       <height>31</height>
      </rect>
+    </property>
+   </widget>
+   <widget class="QWidget" name="verticalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>40</y>
+      <width>651</width>
+      <height>251</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="Vbox"/>
+   </widget>
+   <widget class="QPushButton" name="Bot_Emergencia">
+    <property name="geometry">
+     <rect>
+      <x>80</x>
+      <y>400</y>
+      <width>121</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="cursor">
+     <cursorShape>PointingHandCursor</cursorShape>
+    </property>
+    <property name="text">
+     <string>Emergencia</string>
     </property>
    </widget>
   </widget>

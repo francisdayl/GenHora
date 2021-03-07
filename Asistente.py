@@ -9,10 +9,69 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from os import path
 import pandas as pd
-from pandastable import Table, TableModel
 import pickle
+from funciones import *
+from os import path
+#from PandasModel import PandasModel
+
+class PandasModel(QtCore.QAbstractTableModel): 
+    def __init__(self, df = pd.DataFrame(), parent=None): 
+        QtCore.QAbstractTableModel.__init__(self, parent=parent)
+        self._df = df
+
+    def headerData(self, section, orientation, role=QtCore.Qt.DisplayRole):
+        if role != QtCore.Qt.DisplayRole:
+            return QtCore.QVariant()
+
+        if orientation == QtCore.Qt.Horizontal:
+            try:
+                return self._df.columns.tolist()[section]
+            except (IndexError, ):
+                return QtCore.QVariant()
+        elif orientation == QtCore.Qt.Vertical:
+            try:
+                # return self.df.index.tolist()
+                return self._df.index.tolist()[section]
+            except (IndexError, ):
+                return QtCore.QVariant()
+
+    def data(self, index, role=QtCore.Qt.DisplayRole):
+        if role != QtCore.Qt.DisplayRole:
+            return QtCore.QVariant()
+
+        if not index.isValid():
+            return QtCore.QVariant()
+
+        return QtCore.QVariant(str(self._df.iloc[index.row(), index.column()]))
+
+    def setData(self, index, value, role):
+        row = self._df.index[index.row()]
+        col = self._df.columns[index.column()]
+        if hasattr(value, 'toPyObject'):
+            # PyQt4 gets a QVariant
+            value = value.toPyObject()
+        else:
+            # PySide gets an unicode
+            dtype = self._df[col].dtype
+            if dtype != object:
+                value = None if value == '' else dtype.type(value)
+        self._df.set_value(row, col, value)
+        return True
+
+    def rowCount(self, parent=QtCore.QModelIndex()): 
+        return len(self._df.index)
+
+    def columnCount(self, parent=QtCore.QModelIndex()): 
+        return len(self._df.columns)
+
+    def sort(self, column, order):
+        colname = self._df.columns.tolist()[column]
+        self.layoutAboutToBeChanged.emit()
+        self._df.sort_values(colname, ascending= order == QtCore.Qt.AscendingOrder, inplace=True)
+        self._df.reset_index(inplace=True, drop=True)
+        self.layoutChanged.emit()
+
 
 class Ui_AsistenteRegistros(object):
     def setupUi(self, AsistenteRegistros):
@@ -27,12 +86,7 @@ class Ui_AsistenteRegistros(object):
         AsistenteRegistros.setFont(font)
         self.centralwidget = QtWidgets.QWidget(AsistenteRegistros)
         self.centralwidget.setObjectName("centralwidget")
-        self.Frame = QtWidgets.QFrame(self.centralwidget)
-        self.Frame.setGeometry(QtCore.QRect(0, 40, 661, 251))
-        self.Frame.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.Frame.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.Frame.setObjectName("Frame")
-        self.List_MReg = QtWidgets.QListView(self.centralwidget)
+        self.List_MReg = QtWidgets.QListWidget(self.centralwidget)
         self.List_MReg.setGeometry(QtCore.QRect(400, 320, 241, 131))
         self.List_MReg.viewport().setProperty("cursor", QtGui.QCursor(QtCore.Qt.ArrowCursor))
         self.List_MReg.setObjectName("List_MReg")
@@ -87,6 +141,20 @@ class Ui_AsistenteRegistros(object):
         self.Text_MatReg = QtWidgets.QPlainTextEdit(self.centralwidget)
         self.Text_MatReg.setGeometry(QtCore.QRect(20, 340, 221, 31))
         self.Text_MatReg.setObjectName("Text_MatReg")
+        self.verticalLayoutWidget = QtWidgets.QWidget(self.centralwidget)
+        self.verticalLayoutWidget.setGeometry(QtCore.QRect(0, 40, 651, 251))
+        self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
+        self.Vbox = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
+        self.Vbox.setContentsMargins(0, 0, 0, 0)
+        self.Vbox.setObjectName("Vbox")
+        self.Bot_Emergencia = QtWidgets.QPushButton(self.centralwidget)
+        self.Bot_Emergencia.setGeometry(QtCore.QRect(80, 400, 121, 41))
+        font = QtGui.QFont()
+        font.setBold(True)
+        font.setWeight(75)
+        self.Bot_Emergencia.setFont(font)
+        self.Bot_Emergencia.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.Bot_Emergencia.setObjectName("Bot_Emergencia")
         AsistenteRegistros.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(AsistenteRegistros)
         self.statusbar.setObjectName("statusbar")
@@ -94,13 +162,98 @@ class Ui_AsistenteRegistros(object):
 
         self.retranslateUi(AsistenteRegistros)
         QtCore.QMetaObject.connectSlotsByName(AsistenteRegistros)
-        self.Bot_Sal.clicked.connect(lambda: AsistenteRegistros.close())
+
+        self.List_MReg.setItemAlignment(QtCore.Qt.AlignHCenter)
+
+        self.pandasTv = QtWidgets.QTableView()
 
 
+
+        self.contador=1
+        self.horarios=pickle.load( open( "horarios_full.xd", "rb" ) )
         
-        #self.horarios_full=pickle.load( open( "horarios_full.xd", "rb" ) )
-        #print(len(self.horarios_full))
-        self.mostrar_horar(self.Frame)
+        if path.exists("horarios_filt.xd"):
+            self.horarios=pickle.load( open( "horarios_filt.xd", "rb" ) )
+            
+        
+
+        self.df = self.horarios["Horario 1"]
+        self.model = PandasModel(self.df)
+        self.pandasTv.setModel(self.model)
+        self.Label_hors.setText("Horario {} de {}".format(self.contador,len(self.horarios)))
+
+        self.Vbox.addWidget(self.pandasTv) 
+        self.Bot_Sal.clicked.connect(lambda: AsistenteRegistros.close())
+        self.Bot_HSig.clicked.connect(self.siguiente_horario)
+        self.Bot_HAnt.clicked.connect(self.anterior_horario)
+        self.Bot_Reg.clicked.connect(self.registar_mate)
+
+    def siguiente_horario(self):
+        if self.contador != len(self.horarios):
+            self.contador += 1
+            self.Label_hors.setText("Horario {} de {}".format(self.contador,len(self.horarios)))
+            self.df=self.horarios["Horario "+str(self.contador)]
+            self.model = PandasModel(self.df)
+            self.pandasTv.setModel(self.model)
+        else:
+            boton = QtWidgets.QMessageBox()
+            boton.setWindowTitle("Error")
+            boton.setIcon(QtWidgets.QMessageBox.Critical)
+            boton.setText("No existen más horarios disponibles")
+            x = boton.exec_()
+    
+    def anterior_horario(self):
+        if self.contador != 1:
+            self.contador -= 1
+            self.Label_hors.setText("Horario {} de {}".format(self.contador,len(self.horarios)))
+            self.df=self.horarios["Horario "+str(self.contador)]
+            self.model = PandasModel(self.df)
+            self.pandasTv.setModel(self.model)
+        else:
+            boton = QtWidgets.QMessageBox()
+            boton.setWindowTitle("Error")
+            boton.setIcon(QtWidgets.QMessageBox.Critical)
+            boton.setText("No existen horarios anteriores disponibles")
+            x = boton.exec_()
+    
+    def registar_mate(self):
+        mask = self.df==self.Text_MatReg.toPlainText().strip()
+        if mask.any().any() and self.Text_MatReg.toPlainText().strip()!="":
+            self.horarios = filtrar_horarios(self.horarios,self.Text_MatReg.toPlainText().strip())
+            self.List_MReg.addItem(self.Text_MatReg.toPlainText().strip())
+            self.contador = 1
+            self.Label_hors.setText("Horario {} de {}".format(self.contador,len(self.horarios)))
+            self.df=self.horarios["Horario "+str(self.contador)]
+            self.model = PandasModel(self.df)
+            self.pandasTv.setModel(self.model)
+            self.Text_MatReg.clear()
+        else:
+            boton = QtWidgets.QMessageBox()
+            boton.setWindowTitle("Error")
+            boton.setIcon(QtWidgets.QMessageBox.Critical)
+            boton.setText("Materia inexistente en el horario mostrado.\nVerifique la informacion ingresada")
+            x = boton.exec_()
+
+    def emergencia(self):
+        if path.exists("horarios_filt.xd"):
+            self.contador=1
+            self.horarios=pickle.load( open( "horarios_full.xd", "rb" ) )
+            for i in range(self.List_MReg.count()):
+                mate = self.List_MReg.item().text()
+                self.horarios = filtrar_horarios(self.horarios,mate)
+            self.Label_hors.setText("Horario {} de {}".format(self.contador,len(self.horarios)))
+            self.df=self.horarios["Horario "+str(self.contador)]
+            self.model = PandasModel(self.df)
+            self.pandasTv.setModel(self.model)
+            
+        else:
+            boton = QtWidgets.QMessageBox()
+            boton.setWindowTitle("Error")
+            boton.setIcon(QtWidgets.QMessageBox.Critical)
+            boton.setText("No existen horarios por consultar")
+            x = boton.exec_()
+
+
         
 
     def retranslateUi(self, AsistenteRegistros):
@@ -113,57 +266,8 @@ class Ui_AsistenteRegistros(object):
         self.Label_hors.setText(_translate("AsistenteRegistros", "Horario"))
         self.Bot_Sal.setText(_translate("AsistenteRegistros", "Salir"))
         self.label_2.setText(_translate("AsistenteRegistros", "Materia a Registrar"))
-    
-    def mostrar_horar(self,Frame):
-        horarios_full = pickle.load( open( "horarios_full.xd", "rb" ) )
-        df = horarios_full["Horario 1"] 
-        table = pt = Table(self.Frame, dataframe=df)
-        table.showIndex()
-        pt.show()
-        
-        
+        self.Bot_Emergencia.setText(_translate("AsistenteRegistros", "Emergencia"))
 
-class TableModel(QtCore.QAbstractTableModel):
-
-    def __init__(self, data):
-        super(TableModel, self).__init__()
-        self._data = data
-
-    def data(self, index, role):
-        if role == Qt.DisplayRole:
-            value = self._data.iloc[index.row(), index.column()]
-            return str(value)
-
-    def rowCount(self, index):
-        return self._data.shape[0]
-
-    def columnCount(self, index):
-        return self._data.shape[1]
-
-    def headerData(self, section, orientation, role):
-        # section is the index of the column/row.
-        if role == Qt.DisplayRole:
-            if orientation == Qt.Horizontal:
-                return str(self._data.columns[section])
-
-            if orientation == Qt.Vertical:
-                return str(self._data.index[section])
-
-
-class MainWindow(QtWidgets.QMainWindow):
-
-    def __init__(self):
-        super().__init__()
-
-        self.table = QtWidgets.QTableView()
-
-        data = hor_1
-        
-
-        self.model = TableModel(data)
-        self.table.setModel(self.model)
-
-        self.setCentralWidget(self.table)
 
 if __name__ == "__main__":
     import sys
