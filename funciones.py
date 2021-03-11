@@ -232,11 +232,20 @@ def val_choque_llenar_mat(DF, clases,mate):
         hor_f = clase[2]
         hori = horas_clase[horas.index(hor_i)]
         horf = horas_clase[horas.index(hor_f)-1]
-        compa=DF.loc[hori:horf,dia]==""
-        if compa.all():
-            DF.loc[hori:horf,dia]=mate
+        if "*" in mate and horas.index(hor_i)>1:
+            hori_cmp = horas_clase[horas.index(hor_i)-1]
+            compa = DF.loc[hori_cmp:horf,dia]==""
+            if compa.all():
+                DF.loc[hori:horf,dia]=mate
+            else:
+                return False
         else:
-            return False
+            compa = DF.loc[hori:horf,dia]==""
+            if compa.all():
+                DF.loc[hori:horf,dia]=mate
+            else:
+                return False
+
 
     return DF
 
@@ -412,6 +421,7 @@ def filtrar_recortar(hora_ent,hora_sal,hueco,mats_max):
             else:
                 horario.to_excel("Horarios_filtrados.xlsx",sheet_name="Horario "+str(conta)) 
             conta +=1
+
     if len(hors_filt)>0:
         pickle.dump(hors_filt, open( "horarios_filt.xd", "wb" ) )
     return len(hors_filt)
@@ -426,7 +436,5 @@ def filtrar_horarios(dicc,materia):
             conta +=1
     return hors
 
-
-#print(filtrar_recortar("08:30","16:30","",""))
 
 
