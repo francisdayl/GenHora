@@ -109,6 +109,7 @@ class Ui_Dialog(object):
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
+        self.Bot_Salir.clicked.connect(lambda: self.borrar("Todo"))
         self.Bot_Salir.clicked.connect(lambda: Dialog.close())
         self.Bot_Reg.clicked.connect(self.guardar_reg)
         self.Bot_Borrar.clicked.connect(lambda: self.borrar("Todo"))

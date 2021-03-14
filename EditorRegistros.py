@@ -167,6 +167,7 @@ class Ui_EditorRegistros(object):
 
         self.retranslateUi(EditorRegistros)
         QtCore.QMetaObject.connectSlotsByName(EditorRegistros)
+        self.Bot_Sal.clicked.connect(lambda: self.salir())
         self.Bot_Sal.clicked.connect(lambda: EditorRegistros.close())
         self.Bot_BMat.clicked.connect(self.borrar_materia)
         self.Bot_BPar.clicked.connect(self.borrar_paralelo)
@@ -244,6 +245,13 @@ class Ui_EditorRegistros(object):
             for j in range(4):
                 elems[i][j].hide()
 
+    def salir(self):
+        self.hide_info()
+        self.Combo_ParP.hide()
+        self.label_3.hide()
+        self.Combo_Par.clear()
+        self.Combo_Par.clearEditText()
+
 
     def guardar_cambios(self):
         if self.Label_1C.isHidden():
@@ -256,22 +264,38 @@ class Ui_EditorRegistros(object):
             exito = False
             #datos_texts = [[self.Text_D1T.toPlainText(),self.Text_HI1T.toPlainText(),self.Text_HF1T.toPlainText()],[self.Text_D2T.toPlainText(),self.Text_HI2T.toPlainText(),self.Text_HF2T.toPlainText()],[self.Text_DP.toPlainText(),self.Text_HIP.toPlainText(),self.Text_HFP.toPlainText()]]
             #esults_vals = []
+   
             if self.Label_2C.isHidden() and self.Label_CP.isHidden():
                 datos_texts = [[self.Text_D1T.toPlainText(),self.Text_HI1T.toPlainText(),self.Text_HF1T.toPlainText()]]
-                if type(val_registro("{}\t{}\t{}".format(datos_texts[0][0],datos_texts[0][1],datos_texts[0][2])))!=bool:
-                    registrar_info(self.Combo_Mat.currentText(),self.Combo_Par.currentText(), datos_texts[0],[],[],self.Combo_ParP.currentText())
+                val1 = val_registro("{}\t{}\t{}".format(datos_texts[0][0],datos_texts[0][1],datos_texts[0][2]))
+                if type(val1)!=bool:
+                    registrar_info(self.Combo_Mat.currentText(),self.Combo_Par.currentText(), val1,[],[],self.Combo_ParP.currentText())
                     exito = True
+
+            elif self.Label_1C.isHidden() and self.Label_CP.isHidden():
+                datos_texts = [[self.Text_D2T.toPlainText(),self.Text_HI2T.toPlainText(),self.Text_HF2T.toPlainText()]]
+                val2 = val_registro("{}\t{}\t{}".format(datos_texts[0][0],datos_texts[0][1],datos_texts[0][2]))
+                if type(val2)!=bool:
+                    registrar_info(self.Combo_Mat.currentText(),self.Combo_Par.currentText(), [],val2,[],self.Combo_ParP.currentText())
+                    exito = True
+
             elif self.Label_CP.isHidden():
-                 datos_texts = [[self.Text_D1T.toPlainText(),self.Text_HI1T.toPlainText(),self.Text_HF1T.toPlainText()],[self.Text_D2T.toPlainText(),self.Text_HI2T.toPlainText(),self.Text_HF2T.toPlainText()]]
-            
-                 if type(val_registro("{}\t{}\t{}".format(datos_texts[1][0],datos_texts[1][1],datos_texts[1][2])))!=bool and type(val_registro("{}\t{}\t{}".format(datos_texts[0][0],datos_texts[0][1],datos_texts[0][2])))!=bool :
-                    registrar_info(self.Combo_Mat.currentText(),self.Combo_Par.currentText(), [self.Text_D1T.toPlainText(),self.Text_HI1T.toPlainText(),self.Text_HF1T.toPlainText()],[self.Text_D2T.toPlainText(),self.Text_HI2T.toPlainText(),self.Text_HF2T.toPlainText()],[],self.Combo_ParP.currentText())
+                datos_texts = [[self.Text_D1T.toPlainText(),self.Text_HI1T.toPlainText(),self.Text_HF1T.toPlainText()],[self.Text_D2T.toPlainText(),self.Text_HI2T.toPlainText(),self.Text_HF2T.toPlainText()]]
+                val1 = val_registro("{}\t{}\t{}".format(datos_texts[0][0],datos_texts[0][1],datos_texts[0][2]))
+                val2 = val_registro("{}\t{}\t{}".format(datos_texts[1][0],datos_texts[1][1],datos_texts[1][2]))
+                
+                if type(val2)!=bool and type(val1)!=bool :
+                    registrar_info(self.Combo_Mat.currentText(),self.Combo_Par.currentText(), val1, val2,[],self.Combo_ParP.currentText())
                     exito = True
             else:
                 datos_texts = [[self.Text_D1T.toPlainText(),self.Text_HI1T.toPlainText(),self.Text_HF1T.toPlainText()],[self.Text_D2T.toPlainText(),self.Text_HI2T.toPlainText(),self.Text_HF2T.toPlainText()],[self.Text_DP.toPlainText(),self.Text_HIP.toPlainText(),self.Text_HFP.toPlainText()]]
-                if type(val_registro("{}\t{}\t{}".format(datos_texts[0][0],datos_texts[0][1],datos_texts[0][2])))!=bool and type(val_registro("{}\t{}\t{}".format(datos_texts[1][0],datos_texts[1][1],datos_texts[1][2])))!=bool and type(val_registro("{}\t{}\t{}".format(datos_texts[2][0],datos_texts[2][1],datos_texts[2][2])))!=bool:
-                    registrar_info(self.Combo_Mat.currentText(),self.Combo_Par.currentText(), [self.Text_D1T.toPlainText(),self.Text_HI1T.toPlainText(),self.Text_HF1T.toPlainText()],[self.Text_D2T.toPlainText(),self.Text_HI2T.toPlainText(),self.Text_HF2T.toPlainText()],[self.Text_DP.toPlainText(),self.Text_HIP.toPlainText(),self.Text_HFP.toPlainText()],self.Combo_ParP.currentText())
+                val1 = val_registro("{}\t{}\t{}".format(datos_texts[0][0],datos_texts[0][1],datos_texts[0][2]))
+                val2 = val_registro("{}\t{}\t{}".format(datos_texts[1][0],datos_texts[1][1],datos_texts[1][2]))
+                val3 = val_registro("{}\t{}\t{}".format(datos_texts[2][0],datos_texts[2][1],datos_texts[2][2]))
+                if type(val1)!=bool and type(val2)!=bool and type(val3)!=bool:
+                    registrar_info(self.Combo_Mat.currentText(),self.Combo_Par.currentText(), val1, val2, val3,self.Combo_ParP.currentText())
                     exito = True
+
             if exito:
                 boton = QtWidgets.QMessageBox()
                 boton.setWindowTitle("Información")
