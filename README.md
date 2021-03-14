@@ -8,8 +8,8 @@ English
 
 Program that allows to generate all possible schedule based on student/user preferences. The schedules are saved on excel files (All possible schedule and the ones based on the preferences). Further, the program has an registry asistant to make the subject inscription faster
 
-Link Tutorial + Ejecutable:  aaaa
-
+Link Tutorial + Ejecutable: [Tutorial Youtube + Ejecutabale](https://youtube.com).<br>
+Ejecutable: [Ir a Mega](https://mega.nz/file/D4MwyTrZ#CftG63kvL1mU6dzpVh4k0275KFl7oobsEq3jFkuX1XQ).
 
 Pantallas ~ Screens
 --
